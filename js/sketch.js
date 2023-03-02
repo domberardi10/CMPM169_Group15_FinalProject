@@ -14,6 +14,7 @@ let fixedUpdateTimer = 0; //tracking time to check if fixedUpdate should happen
 
 let creature;
 let img;
+let hungerBar, funBar, healthBar;
 
 // arrays of images/sprites
 let heads = [];
@@ -57,15 +58,22 @@ function preload() {
 function setup() {
     createCanvas(windowWidth, windowHeight);
     background(225);
-    money = startingMoney
+    money = startingMoney;
 
+    // testing status bar display
+    creature = new Creature(width / 2, height / 2);
+    hungerBar = new StatusBar("Hunger", 100, 0);
+    funBar = new StatusBar("Fun", 100, 1);
+    healthBar = new StatusBar("Health", 100, 2);
+    hungerBar.draw();
+    funBar.draw();
+    healthBar.draw();
+    
     //Canvas draw
     noFill();
     stroke(0);
     strokeWeight(3);
     square(width / 2 - (VIEWPORTSIZE / 2), height / 2 - (VIEWPORTSIZE / 2), VIEWPORTSIZE);
-
-    //let creature = Creature(width / 2, height / 2, SPRITE)
 
     setTimeout(() => {
         console.log(heads);
@@ -217,11 +225,11 @@ class StatusBar {
     constructor(status, color, statIndex) {
         this.text = status; // text to display
         this.color = color; // color of the fill for the bar
-        // 5 is used as the amount of space between each bar (can be altered)
-        this.barWidth = (VIEWPORTSIZE - (4 * 5)) / 3;
-        this.barHeight = 10;
-        this.x = 5 + ((width / 2) - (VIEWPORTSIZE / 2)) + (5 + statIndex) + (barwidth * statIndex);
-        this.y = 5 + ((height / 2) - (VIEWPORTSIZE / 2));
+        let offset = 10; // the amount of space between each bar (can be altered)
+        this.barWidth = (VIEWPORTSIZE - (4 * offset)) / 3;
+        this.barHeight = 20;
+        this.x = offset + ((width / 2) - (VIEWPORTSIZE / 2)) + (offset * statIndex) + (this.barWidth * statIndex);
+        this.y = offset + ((height / 2) - (VIEWPORTSIZE / 2));
         this.statIndex = statIndex;
         this.value = creature.statArray[this.statIndex];
     }
@@ -234,11 +242,15 @@ class StatusBar {
     draw() {
         // draw the status bar in the correct location on the screen with the correct fill
         noStroke();
-        fill(color);
+        fill(this.color);
         let percentage = (this.value / 100) // 100 is the max stat value here (might want to make that global)
         rect(this.x, this.y, (this.barWidth * percentage), this.barHeight);
         noFill();
         stroke(0);
         rect(this.x, this.y, this.barWidth, this.barHeight);
+        fill(0);
+        noStroke();
+        textAlign(CENTER);
+        text(this.text, this.x + (this.barWidth / 2), this.y + (this.barHeight / 1.5));
     }
 }
