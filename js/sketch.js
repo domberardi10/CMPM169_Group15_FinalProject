@@ -6,7 +6,7 @@
 let VIEWPORTSIZE = 400;
 let money;
 let startStat = 50;
-let startingMoney = 500;
+let startingMoney = 100;
 let eventProbability = 10; // PERCENT CHANCE OF EVENT HAPPENING EVERY FIXED UPDATE
 let decrementStatProbability = 15; // PERCENT CHANCE OF STAT DECREMENTING EVERY FIXEDUPDATE()
 let fixedUpdateFrequency = 3; //fixedUpdate happens every x seconds
@@ -15,6 +15,7 @@ let fixedUpdateTimer = 0; //tracking time to check if fixedUpdate should happen
 let creature;
 let img;
 let hungerBar, funBar, healthBar;
+let feedButton, toyButton, vetButton;
 
 // arrays of images/sprites
 let heads = [];
@@ -64,16 +65,12 @@ function setup() {
     creature = new Creature(width / 2, height / 2);
     hungerBar = new StatusBar("Hunger", 100, 0);
     funBar = new StatusBar("Fun", 100, 1);
-    healthBar = new StatusBar("Health", 100, 2);
-    hungerBar.draw();
-    funBar.draw();
-    healthBar.draw();
-    
-    //Canvas draw
-    noFill();
-    stroke(0);
-    strokeWeight(3);
-    square(width / 2 - (VIEWPORTSIZE / 2), height / 2 - (VIEWPORTSIZE / 2), VIEWPORTSIZE);
+    healthBar = new StatusBar("Health", 100, 2);;
+
+    // testing interaction button display
+    feedButton = new InteractButton('Feed', 200, 0, 5, 10, 'F');
+    toyButton = new InteractButton('Toy', 200, 1, 10, 10, 'T');
+    vetButton = new InteractButton('Vet', 200, 2, 15, 10, 'V');
 
     setTimeout(() => {
         console.log(heads);
@@ -89,15 +86,38 @@ function setup() {
 
 // draw() function is called repeatedly, it's the main animation loop
 function draw() {
-    //background(220); 
+    background(220); 
+
+    //Canvas draw
+    noFill();
+    stroke(0);
+    strokeWeight(3);
+    square(width / 2 - (VIEWPORTSIZE / 2), height / 2 - (VIEWPORTSIZE / 2), VIEWPORTSIZE);
     
     //creature.draw();
+
+    // update status bars
+    hungerBar.update();
+    funBar.update();
+    healthBar.update();
+    hungerBar.draw();
+    funBar.draw();
+    healthBar.draw();
+
+    feedButton.draw();
+    toyButton.draw();
+    vetButton.draw();
+
+
 
     fixedUpdateTimer += deltaTime;
     if (fixedUpdateTimer > fixedUpdateFrequency){
         fixedUpdate();
         fixedUpdateTimer = 0;
     }  
+
+    // testing money amount
+    console.log('Money = $' + money);
     
 }
 
@@ -108,9 +128,17 @@ function fixedUpdate(){ // Runs every fixedUpdateFrequency seconds, use for thin
 
 
 
-// mousePressed() function is called once after every time a mouse button is pressed
-function mousePressed() {
-    // code to run when mouse is pressed
+function keyPressed() {
+    // code to run when key is pressed
+    if (key == 'f') {
+        feedButton.update();
+    }
+    if (key == 't') {
+        toyButton.update();
+    }
+    if (key == 'v') {
+        vetButton.update();
+    }
 }
 
 function generateRandomCreature() {
@@ -252,5 +280,53 @@ class StatusBar {
         noStroke();
         textAlign(CENTER);
         text(this.text, this.x + (this.barWidth / 2), this.y + (this.barHeight / 1.5));
+    }
+}
+
+class InteractButton {
+    // might change these to button, in which case key isnt necessary
+    constructor(interaction, color, statIndex, initialCost, initialEffect, key) {
+        this.text = interaction;
+        this.key = key;
+        this.color = color;
+        this.statIndex = statIndex;
+        let offset = 10;
+        this.buttonWidth = (VIEWPORTSIZE - (4 * offset)) / 3;
+        this.buttonHeight = 40;
+        this.x = offset + ((width / 2) - (VIEWPORTSIZE / 2)) + (offset * statIndex) + (this.buttonWidth * statIndex);
+        this.y = ((height / 2) - (VIEWPORTSIZE / 2)) + VIEWPORTSIZE - this.buttonHeight - offset;
+        this.cost = initialCost;
+        this.effect = initialEffect;
+        this.timesPressed = 0; // used to decrease the effectivness of interaction or increase the cost of interaction
+    }
+
+    // gets called when certain key is pressed
+    update() {
+        // WOOPS YOU CAN ACTUALLY JUST CALL STATINCREASE ON THE CREATURE CLASS (WILL FIX LATER)
+        if (money >= this.cost) {
+            money -= this.cost;
+            creature.statArray[this.statIndex] += this.effect;
+            if (creature.statArray[this.statIndex] > 100) {
+                creature.statArray[this.statIndex] = 100; // ensure it doesnt go over max stat
+            }
+            this.timesPressed += 1;
+        }
+        else {
+            console.log("Not Enough Money");
+        }
+
+        // here we can deal with increasing cost / decreasing effect
+    }
+
+    draw() {
+        fill(this.color);
+        stroke(0);
+        rect(this.x, this.y, this.buttonWidth, this.buttonHeight);
+        fill(0);
+        noStroke();
+        textAlign(CENTER);
+        textSize(15);
+        let display = this.text + "   $" + String(this.cost) + "   [" + this.key + "]";
+        text(display, this.x + (this.buttonWidth / 2), this.y + (this.buttonHeight / 1.75));
     }
 }
