@@ -96,7 +96,7 @@ function draw() {
     
     //creature.draw();
 
-    // update status bars
+    // update and display status bars
     hungerBar.update();
     funBar.update();
     healthBar.update();
@@ -104,29 +104,25 @@ function draw() {
     funBar.draw();
     healthBar.draw();
 
+    // display buttons
     feedButton.draw();
     toyButton.draw();
     vetButton.draw();
 
-
+    // testing money amount
+    console.log('Money = $' + money);
 
     fixedUpdateTimer += deltaTime;
     if (fixedUpdateTimer > fixedUpdateFrequency){
         fixedUpdate();
         fixedUpdateTimer = 0;
     }  
-
-    // testing money amount
-    console.log('Money = $' + money);
     
 }
 
 function fixedUpdate(){ // Runs every fixedUpdateFrequency seconds, use for things that don't run every frame like in draw()
     //creature.fixedUpdate();
-
 }
-
-
 
 function keyPressed() {
     // code to run when key is pressed
@@ -188,11 +184,14 @@ class Creature {
 
     increaseStat(statIndex, increment, cost){
         if (money < cost){
-            print("YOU ARE POVERTY") //replace with something thats not a print statement
+            console.log("Not Enough Money") //replace with something thats not a print statement
             return;
         }
         money -= cost;
-        this.statArray[statIndex] += increment
+        this.statArray[statIndex] += increment;
+        if (this.statArray[statIndex] > this.maxStat) {
+            this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
+        }
         switch (statIndex){
             case 0: // HUNGER
                 //PLACEHOLDER
@@ -271,7 +270,7 @@ class StatusBar {
         // draw the status bar in the correct location on the screen with the correct fill
         noStroke();
         fill(this.color);
-        let percentage = (this.value / 100) // 100 is the max stat value here (might want to make that global)
+        let percentage = (this.value / creature.maxStat)
         rect(this.x, this.y, (this.barWidth * percentage), this.barHeight);
         noFill();
         stroke(0);
@@ -297,25 +296,25 @@ class InteractButton {
         this.y = ((height / 2) - (VIEWPORTSIZE / 2)) + VIEWPORTSIZE - this.buttonHeight - offset;
         this.cost = initialCost;
         this.effect = initialEffect;
-        this.timesPressed = 0; // used to decrease the effectivness of interaction or increase the cost of interaction
+        this.timesPressed = 0; // used to decrease the effectivness of interaction or increase the cost of interaction?
     }
 
     // gets called when certain key is pressed
     update() {
-        // WOOPS YOU CAN ACTUALLY JUST CALL STATINCREASE ON THE CREATURE CLASS (WILL FIX LATER)
         if (money >= this.cost) {
-            money -= this.cost;
-            creature.statArray[this.statIndex] += this.effect;
-            if (creature.statArray[this.statIndex] > 100) {
-                creature.statArray[this.statIndex] = 100; // ensure it doesnt go over max stat
-            }
             this.timesPressed += 1;
         }
-        else {
-            console.log("Not Enough Money");
-        }
+        creature.increaseStat(this.statIndex, this.effect, this.cost);
 
-        // here we can deal with increasing cost / decreasing effect
+        // deals with increasing cost / decreasing effect (not finished yet)
+        // right now, all this does is increase the cost and decrease the effectiveness every 5 times it is used
+        if ((this.timesPressed != 0) && (this.timesPressed % 5) == 0) {
+            this.cost += 5;
+            this.effect -= 1;
+            if (this.effect < 0) {
+                this.effect = 1; // maybe we DO want to reach apoint where it becomes completely ineffective
+            }
+        }
     }
 
     draw() {
