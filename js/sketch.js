@@ -121,9 +121,6 @@ function draw() {
     toyButton.draw();
     vetButton.draw();
 
-    // testing money amount
-    console.log('Money = $' + money);
-
     // temporary money display
     let txt = "$" + String(money);
     fill(0);
@@ -303,16 +300,10 @@ class Creature {
     }
     
     increaseStat(statIndex, increment, cost){
-        if (money < cost){
-            console.log("Not Enough Money") //replace with something thats not a print statement
-            return;
-        }
-        else if (this.statArray[statIndex] < this.maxStat) {
-            money -= cost;
-            this.statArray[statIndex] += increment;
-            if (this.statArray[statIndex] > this.maxStat) {
-                this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
-            }
+        money -= cost;
+        this.statArray[statIndex] += increment;
+        if (this.statArray[statIndex] > this.maxStat) {
+            this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
         }
         switch (statIndex){
             case 0: // HUNGER
@@ -427,6 +418,10 @@ class InteractButton {
 
     // gets called when certain key is pressed
     update() {
+        if (money < this.cost) {
+            console.log("Not Enough Money") //replace with something thats not a print statement
+            return;
+        }
         if (money >= this.cost && creature.statArray[this.statIndex] < creature.maxStat) {
             creature.increaseStat(this.statIndex, this.effect, this.cost);
             this.timesPressed += 1;
@@ -436,7 +431,7 @@ class InteractButton {
                 this.cost += 5;
                 this.effect -= 1;
                 if (this.effect < 0) {
-                    this.effect = 1; // maybe we DO want to reach apoint where it becomes completely ineffective
+                    this.effect = 1; // maybe we DO want to reach a point where it becomes completely ineffective
                 }
             }
         }
