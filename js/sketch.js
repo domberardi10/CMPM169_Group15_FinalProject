@@ -248,6 +248,17 @@ class Creature {
                 return;
             }
             this.movingTimer += deltaTime;
+
+            //updates moveSpeed based on current happiness
+            let happiness = (this.statArray[0] + this.statArray[1] + this.statArray[2]) / (this.maxStat * 3);
+            if (happiness < 0.33) {
+                this.moveSpeed = 1;
+            } else if (happiness < 0.66) {
+                this.moveSpeed = 2;
+            } else {
+                this.moveSpeed = 3;
+            }
+
             if (this.updateTimer >= this.moveUpdate) {
                 this.updateTimer = 0;
                 //Moves the creature right
