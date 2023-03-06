@@ -13,6 +13,7 @@ let fixedUpdateFrequency = 3; //fixedUpdate happens every x seconds
 let fixedUpdateTimer = 0; //tracking time to check if fixedUpdate should happen
 
 let creature;
+let creatureSprite;
 let img;
 let hungerBar, funBar, healthBar;
 let feedButton, toyButton, vetButton;
@@ -22,9 +23,17 @@ let heads = [];
 let bodies = [];
 let legs = [];
 
+let testy;
+
+let spriteArray = [];
+
 // preload() to load all images
 function preload() {
     var folder = "assets/";
+
+    heads.push(loadImage("assets/head_test_yellow.PNG"));
+    bodies.push(loadImage("assets/body_test_blue.PNG"));
+    legs.push(loadImage("assets/legs_test_red.PNG"));
 
     $.ajax({
         url : folder,
@@ -62,7 +71,8 @@ function setup() {
     money = startingMoney;
 
     // testing status bar display
-    creature = new Creature(width / 2, height / 2);
+    generateRandomCreature();
+    creature = new Creature(width / 2, height / 2, creatureSprite);
     hungerBar = new StatusBar("Hunger", 100, 0);
     funBar = new StatusBar("Fun", 100, 1);
     healthBar = new StatusBar("Health", 100, 2);;
@@ -78,6 +88,7 @@ function setup() {
         console.log(legs);
     }, 1000);
     
+
     // console.log(heads);
     // console.log(bodies);
     // console.log(legs);
@@ -94,7 +105,8 @@ function draw() {
     strokeWeight(3);
     square(width / 2 - (VIEWPORTSIZE / 2), height / 2 - (VIEWPORTSIZE / 2), VIEWPORTSIZE);
     
-    //creature.draw();
+    creature.draw();
+    //image(creatureSprite, mouseX - creatureSprite.width / 2, mouseY - creatureSprite.height / 2);
 
     // update and display status bars
     hungerBar.update();
@@ -138,6 +150,18 @@ function keyPressed() {
 }
 
 function generateRandomCreature() {
+    //Randomly select body parts and store them in an array
+    spriteArray.push(random(heads));
+    spriteArray.push(random(bodies));
+    spriteArray.push(random(legs));
+
+    //Stacks the 3 images on top of eachother to create a new image
+    let widest = max(spriteArray[0].width, spriteArray[1].width, spriteArray[2].width);
+    creatureSprite = createImage(widest, spriteArray[0].height + spriteArray[1].height + spriteArray[2].height);
+    creatureSprite.set((widest - spriteArray[0].width) / 2, 0, spriteArray[0]);
+    creatureSprite.set((widest - spriteArray[1].width) / 2, spriteArray[0].height, spriteArray[1]);
+    creatureSprite.set((widest - spriteArray[2].width) / 2, spriteArray[0].height + spriteArray[1].height, spriteArray[2]);
+    updatePixels();
 }
 
 class Creature {
@@ -150,6 +174,16 @@ class Creature {
         this.statArray[2] = 50; //HEALTH
         this.highStat = 80;
         this.lowStat = 20;
+      
+        this.chanceTimer = 0;
+        this.chanceTime = 2200; //Controls how often the random chance for the creatue to move occurs
+        this.isMoving = false;  
+        this.movingTimer = 0;   
+        this.movingTime = 1000; //Controls how long the creature moves for
+        this.moveUpdate = 10;   //Controls the rate at which the creatue is moved
+        this.updateTimer = 0;
+        this.moveSpeed = 3;     //Controls how fast the creature moves
+        this.movingRight = false;
 
         this.sprite = sprite;
         this.maxStat = maxStat
@@ -179,9 +213,73 @@ class Creature {
         }
     }
 
-    draw() { //CREATURE ANIMATION LOOP
-    }
+    draw() { //CREATURE ANIMATION LOOP, moves the creature in short increments that randomly occur where the frequency is based on overall happiness
+        image(this.sprite, this.x - this.sprite.width / 2, this.y - this.sprite.height / 2);
 
+        //Randomly decides when the creature should move on a fixed update cycle
+        if (this.chanceTimer >= this.chanceTime) {
+            if (!this.isMoving) {
+                this.chanceTimer = 0;
+                //Rolls a random chance based on the creatures current stats
+                let chance = random(0, this.maxStat * 3);
+                if (chance < this.statArray[0] + this.statArray[1] + this.statArray[2]) {
+                    this.isMoving = true;
+                    this.movingTimer = 0;
+                    //Randomly picks whether the creature moves left or right
+                    chance = random(0, 2);
+                    if (chance < 1) {
+                        this.movingRight = true;
+                    }
+                    else {
+                        this.movingRight = false;
+                    }
+                }
+                return;
+            }
+        }
+        else {
+            this.chanceTimer += deltaTime;
+        }
+
+        //Moves the creature left and right on a fixed update cycle
+        if (this.isMoving) {
+            if (this.movingTimer >= this.movingTime) {
+                this.isMoving = false;
+                return;
+            }
+            this.movingTimer += deltaTime;
+            if (this.updateTimer >= this.moveUpdate) {
+                this.updateTimer = 0;
+                //Moves the creature right
+                if (this.movingRight) {
+                    //Checks if creature is near the right border (needs to start moving left)
+                    if ((width / 2) + (VIEWPORTSIZE / 2) - (this.sprite.width) <= this.x) {
+                        this.movingRight = false;
+                        return;
+                    }
+                    else {
+                        this.x += this.moveSpeed;
+                    }
+                }
+                //Moves the create left
+                else {
+                    //Checks if creature is near the left border (needs to start moving right)
+                    if ((width / 2) - (VIEWPORTSIZE / 2) + (this.sprite.width) >= this.x) {
+                        this.movingRight = true;
+                        return;
+                    }
+                    else {
+                        this.x -= this.moveSpeed;
+                    }
+                }
+            }
+            //Increases the fixed update timer
+            else {
+                this.updateTimer += deltaTime;
+            }
+        }
+    }
+    
     increaseStat(statIndex, increment, cost){
         if (money < cost){
             console.log("Not Enough Money") //replace with something thats not a print statement
