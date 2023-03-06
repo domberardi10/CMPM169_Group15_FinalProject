@@ -8,7 +8,7 @@ let money;
 let startStat = 50;
 let startingMoney = 100;
 let eventProbability = 10; // PERCENT CHANCE OF EVENT HAPPENING EVERY FIXED UPDATE
-let decrementStatProbability = 15; // PERCENT CHANCE OF STAT DECREMENTING EVERY FIXEDUPDATE()
+let decrementStatProbability = 5; // PERCENT CHANCE OF STAT DECREMENTING EVERY FIXEDUPDATE()
 let fixedUpdateFrequency = 3; //fixedUpdate happens every x seconds
 let fixedUpdateTimer = 0; //tracking time to check if fixedUpdate should happen
 
@@ -134,7 +134,7 @@ function draw() {
     text(txt, x, y);
 
 
-    fixedUpdateTimer += deltaTime;
+    fixedUpdateTimer += deltaTime / 1000;
     if (fixedUpdateTimer > fixedUpdateFrequency){
         fixedUpdate();
         fixedUpdateTimer = 0;
@@ -143,7 +143,7 @@ function draw() {
 }
 
 function fixedUpdate(){ // Runs every fixedUpdateFrequency seconds, use for things that don't run every frame like in draw()
-    //creature.fixedUpdate();
+    creature.fixedUpdate();
 }
 
 function keyPressed() {
@@ -203,7 +203,8 @@ class Creature {
         for (let i = 0; i < 3; i++){ //FOR EVERY STAT
             let rand = random(100);
             if (rand < decrementStatProbability){ //CHANCE TO DECREMENT THAT STAT
-                this.decreaseStat(statIndex, 5);
+                this.decreaseStat(i, 5);
+                print("random decrease")
             }
             
 
@@ -332,6 +333,9 @@ class Creature {
 
     decreaseStat(statIndex, increment){
         this.statArray[statIndex] -= increment;
+        if (this.statArray[statIndex] < 0){
+            this.statArray[statIndex] = 0;
+        }
         switch (statIndex){
             case 0: // HUNGER
                 //PLACEHOLDER
