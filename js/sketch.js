@@ -124,6 +124,16 @@ function draw() {
     // testing money amount
     console.log('Money = $' + money);
 
+    // temporary money display
+    let txt = "$" + String(money);
+    fill(0);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    let x = (width / 2) - (VIEWPORTSIZE / 2) + 30;
+    let y = (height / 2) + (VIEWPORTSIZE / 4) + 30;
+    text(txt, x, y);
+
+
     fixedUpdateTimer += deltaTime;
     if (fixedUpdateTimer > fixedUpdateFrequency){
         fixedUpdate();
@@ -296,10 +306,12 @@ class Creature {
             console.log("Not Enough Money") //replace with something thats not a print statement
             return;
         }
-        money -= cost;
-        this.statArray[statIndex] += increment;
-        if (this.statArray[statIndex] > this.maxStat) {
-            this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
+        else if (this.statArray[statIndex] < this.maxStat) {
+            money -= cost;
+            this.statArray[statIndex] += increment;
+            if (this.statArray[statIndex] > this.maxStat) {
+                this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
+            }
         }
         switch (statIndex){
             case 0: // HUNGER
@@ -383,11 +395,12 @@ class StatusBar {
         rect(this.x, this.y, (this.barWidth * percentage), this.barHeight);
         noFill();
         stroke(0);
+        strokeWeight(1.5);
         rect(this.x, this.y, this.barWidth, this.barHeight);
         fill(0);
         noStroke();
-        textAlign(CENTER);
-        text(this.text, this.x + (this.barWidth / 2), this.y + (this.barHeight / 1.5));
+        textAlign(CENTER, CENTER);
+        text(this.text, this.x + (this.barWidth / 2), this.y + (this.barHeight / 2));
     }
 }
 
@@ -410,18 +423,17 @@ class InteractButton {
 
     // gets called when certain key is pressed
     update() {
-        if (money >= this.cost) {
+        if (money >= this.cost && creature.statArray[this.statIndex] < creature.maxStat) {
+            creature.increaseStat(this.statIndex, this.effect, this.cost);
             this.timesPressed += 1;
-        }
-        creature.increaseStat(this.statIndex, this.effect, this.cost);
-
-        // deals with increasing cost / decreasing effect (not finished yet)
-        // right now, all this does is increase the cost and decrease the effectiveness every 5 times it is used
-        if ((this.timesPressed != 0) && (this.timesPressed % 5) == 0) {
-            this.cost += 5;
-            this.effect -= 1;
-            if (this.effect < 0) {
-                this.effect = 1; // maybe we DO want to reach apoint where it becomes completely ineffective
+            // deals with increasing cost / decreasing effect (not finished yet)
+            // right now, all this does is increase the cost and decrease the effectiveness every 5 times it is used
+            if ((this.timesPressed != 0) && (this.timesPressed % 5) == 0) {
+                this.cost += 5;
+                this.effect -= 1;
+                if (this.effect < 0) {
+                    this.effect = 1; // maybe we DO want to reach apoint where it becomes completely ineffective
+                }
             }
         }
     }
@@ -429,12 +441,13 @@ class InteractButton {
     draw() {
         fill(this.color);
         stroke(0);
+        strokeWeight(1.5);
         rect(this.x, this.y, this.buttonWidth, this.buttonHeight);
         fill(0);
         noStroke();
-        textAlign(CENTER);
+        textAlign(CENTER, CENTER);
         textSize(15);
         let display = this.text + "   $" + String(this.cost) + "   [" + this.key + "]";
-        text(display, this.x + (this.buttonWidth / 2), this.y + (this.buttonHeight / 1.75));
+        text(display, this.x + (this.buttonWidth / 2), this.y + (this.buttonHeight / 2));
     }
 }
