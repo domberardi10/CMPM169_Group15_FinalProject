@@ -8,10 +8,14 @@ let money;
 let startStat = 50;
 let startingMoney = 100;
 let eventProbability = 10; // PERCENT CHANCE OF EVENT HAPPENING EVERY FIXED UPDATE
-let decrementStatProbability = 5; // PERCENT CHANCE OF STAT DECREMENTING EVERY FIXEDUPDATE()
-let fixedUpdateFrequency = 3; //fixedUpdate happens every x seconds
+let decrementStatProbability = 40; // PERCENT CHANCE OF STAT DECREMENTING EVERY FIXEDUPDATE()
+let fixedUpdateFrequency = 1; //fixedUpdate happens every x seconds
 let fixedUpdateTimer = 0; //tracking time to check if fixedUpdate should happen
+let startButton;
+let startButtonPressed = false;
+let restartButton;
 
+// game objects
 let creature;
 let creatureSprite;
 let img;
@@ -22,18 +26,20 @@ let feedButton, toyButton, vetButton;
 let heads = [];
 let bodies = [];
 let legs = [];
-
-let testy;
-
 let spriteArray = [];
+
+let textArray = [];
+let happyText = [];
+let neutralText = [];
+let angryText = [];
 
 // preload() to load all images
 function preload() {
     var folder = "assets/";
 
-    heads.push(loadImage("assets/head_test_yellow.PNG"));
-    bodies.push(loadImage("assets/body_test_blue.PNG"));
-    legs.push(loadImage("assets/legs_test_red.PNG"));
+    // heads.push(loadImage("assets/head_test_yellow.PNG"));
+    // bodies.push(loadImage("assets/body_test_blue.PNG"));
+    // legs.push(loadImage("assets/legs_test_red.PNG"));
 
     $.ajax({
         url : folder,
@@ -61,6 +67,8 @@ function preload() {
             });
         }
     });
+
+    textArray = loadStrings('dialouge.txt');
 }
 
 
@@ -69,82 +77,151 @@ function setup() {
     createCanvas(windowWidth, windowHeight);
     background(225);
     money = startingMoney;
+    
+    startButton = new StartButton('Generate Pet!');
+    restartButton = new StartButton('Generate Pet...?');
 
-    // testing status bar display
-    generateRandomCreature();
-    creature = new Creature(width / 2, height / 2, creatureSprite);
-    hungerBar = new StatusBar("Hunger", 100, 0);
-    funBar = new StatusBar("Fun", 100, 1);
-    healthBar = new StatusBar("Health", 100, 2);;
-
-    // testing interaction button display
-    feedButton = new InteractButton('Feed', 200, 0, 5, 10, 'F');
-    toyButton = new InteractButton('Toy', 200, 1, 10, 10, 'T');
-    vetButton = new InteractButton('Vet', 200, 2, 15, 10, 'V');
+    // split up text array
+    let j = 0;
+    let y = 0;
+    for (let i = 0; i < textArray.length; i += 1) {
+        if (textArray[i] == '') {
+            y = i + 1;
+            i = textArray.length;
+        }
+        else {
+            happyText[j] = textArray[i];
+            j += 1;
+        }
+    }
+    j = 0;
+    for (let i = y; i < textArray.length; i += 1) {
+        if (textArray[i] == '') {
+            y = i + 1;
+            i = textArray.length;
+        }
+        else {
+            neutralText[j] = textArray[i];
+            j += 1;
+        }
+    }
+    j = 0;
+    for (let i = y; i < textArray.length; i += 1) {
+        if (textArray[i] == '') {
+            y = i + 1;
+            i = textArray.length;
+        }
+        else {
+            angryText[j] = textArray[i];
+            j += 1;
+        }
+    }
 
     setTimeout(() => {
         console.log(heads);
         console.log(bodies);
         console.log(legs);
-    }, 1000);
-    
-
-    // console.log(heads);
-    // console.log(bodies);
-    // console.log(legs);
+        //generateRandomCreature();
+    }, 100);
 
 }
 
 // draw() function is called repeatedly, it's the main animation loop
 function draw() {
-    background(220); 
+    //console.log(mouseX, mouseY);
+
+    // STUFF DRAWN NO MATTER WHAT
+    background("#f7f6cf"); 
 
     //Canvas draw
-    noFill();
     stroke(0);
+    strokeWeight(2);
+    fill("#b6d8f2");
+    beginShape();
+    vertex((width / 2) - 350, (height / 2) + 50);
+    bezierVertex((width / 2) - 400, (height / 2) + 550, (width / 2) + 400, (height / 2) + 550, (width / 2) + 350, (height / 2) + 50);
+    bezierVertex((width / 2) + 300, (height / 2) - 600, (width / 2) - 300, (height / 2) - 600, (width / 2) - 350, (height / 2) + 50);
+    // vertex((width / 2) - 350, (height / 2) + 300);
+    // bezierVertex((width / 2) - 300, (height / 2) + 400, (width / 2) + 300, (height / 2) + 400, (width / 2) + 350, (height / 2) + 300);
+    // bezierVertex((width / 2) + 550, (height / 2), (width / 2) + 250, (height / 2) - 400, (width / 2), (height / 2) - 400);
+    // bezierVertex((width / 2) - 250, (height / 2) - 400, (width / 2) - 550, (height / 2), (width / 2) - 350, (height / 2) + 300);
+    endShape();
+    //ellipse(width / 2, height / 2, 600, 800);
+    noFill();
+    fill("#ffffff");
     strokeWeight(3);
     square(width / 2 - (VIEWPORTSIZE / 2), height / 2 - (VIEWPORTSIZE / 2), VIEWPORTSIZE);
-    
-    creature.draw();
-    //image(creatureSprite, mouseX - creatureSprite.width / 2, mouseY - creatureSprite.height / 2);
-
-    // update and display status bars
-    hungerBar.update();
-    funBar.update();
-    healthBar.update();
-    hungerBar.draw();
-    funBar.draw();
-    healthBar.draw();
-
-    // display buttons
-    feedButton.draw();
-    toyButton.draw();
-    vetButton.draw();
-
-    // temporary money display
-    let txt = "$" + String(money);
     fill(0);
     noStroke();
     textAlign(CENTER, CENTER);
-    let x = (width / 2) - (VIEWPORTSIZE / 2) + 30;
-    let y = (height / 2) + (VIEWPORTSIZE / 4) + 30;
-    text(txt, x, y);
+    textSize(48);
+    text("YANABOCCHI", width / 2, (height / 2) - 250);
+    
+    // runs only after game starts
+    if (startButtonPressed) {
 
+        // animate creature and display dialouge
+        creature.draw();
+        creature.dialogue();
+        //image(creatureSprite, mouseX - creatureSprite.width / 2, mouseY - creatureSprite.height / 2);
 
-    fixedUpdateTimer += deltaTime / 1000;
-    if (fixedUpdateTimer > fixedUpdateFrequency){
-        fixedUpdate();
-        fixedUpdateTimer = 0;
-    }  
+        // update and display status bars
+        hungerBar.update();
+        funBar.update();
+        healthBar.update();
+        hungerBar.draw();
+        funBar.draw();
+        healthBar.draw();
+
+        // display buttons
+        feedButton.draw();
+        toyButton.draw();
+        vetButton.draw();
+
+        // money display
+        let moneytxt = "$" + String(money);
+        fill(0);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        let x = (width / 2) - (VIEWPORTSIZE / 2) + 30;
+        let y = (height / 2) + (VIEWPORTSIZE / 4) + 30;
+        text(moneytxt, x, y);
+
+        // fixed update function for increasing money and decreasing creature stats
+        fixedUpdateTimer += deltaTime / 1000;
+        if (fixedUpdateTimer > fixedUpdateFrequency){
+            fixedUpdate();
+            fixedUpdateTimer = 0;
+        }  
+        if (creature.statArray[0] == 0 && creature.statArray[1] == 0 && creature.statArray[2] == 0){
+            creature.isAlive = false;
+            restartButton.draw();
+        }
+    }
+    else {
+        startButton.draw();
+    }
     
 }
 
 function fixedUpdate(){ // Runs every fixedUpdateFrequency seconds, use for things that don't run every frame like in draw()
-    creature.fixedUpdate();
+    if (creature.isAlive) {
+        creature.fixedUpdate();
+    }
+    randomMoneyFixedUpdate();
+}
+
+function randomMoneyFixedUpdate(){
+    let rand = random(100);
+    let chance = 35;
+    let increment = int(random(25, 50));
+    if (rand < chance){
+        console.log("Have some money :) ");
+        money += increment;
+    }
 }
 
 function keyPressed() {
-    // code to run when key is pressed
     if (key == 'f') {
         feedButton.update();
     }
@@ -152,6 +229,35 @@ function keyPressed() {
         toyButton.update();
     }
     if (key == 'v') {
+        vetButton.update();
+    }
+}
+
+// for all of the buttons
+function mousePressed() {
+    // start/restart button
+    if ((mouseX > startButton.x) && (mouseX < startButton.x + startButton.width)
+    && (mouseY > startButton.y) && (mouseY < startButton.y + startButton.height) && !startButtonPressed) {
+        money = startingMoney;
+        generateRandomCreature();
+        startButtonPressed = true;
+    }
+    if ((mouseX > restartButton.x) && (mouseX < restartButton.x + restartButton.width)
+    && (mouseY > restartButton.y) && (mouseY < restartButton.y + restartButton.height) && !creature.isAlive) {
+        money = startingMoney;
+        generateRandomCreature();
+    }
+    // interact buttons
+    if ((mouseX > feedButton.x) && (mouseX < feedButton.x + feedButton.buttonWidth)
+    && (mouseY > feedButton.y) && (mouseY < feedButton.y + feedButton.buttonHeight) && startButtonPressed) {
+        feedButton.update();
+    }
+    if ((mouseX > toyButton.x) && (mouseX < toyButton.x + toyButton.buttonWidth)
+    && (mouseY > toyButton.y) && (mouseY < toyButton.y + toyButton.buttonHeight) && startButtonPressed) {
+        toyButton.update();
+    }
+    if ((mouseX > vetButton.x) && (mouseX < vetButton.x + vetButton.buttonWidth)
+    && (mouseY > vetButton.y) && (mouseY < vetButton.y + vetButton.buttonHeight) && startButtonPressed) {
         vetButton.update();
     }
 }
@@ -169,6 +275,15 @@ function generateRandomCreature() {
     creatureSprite.set((widest - spriteArray[1].width) / 2, spriteArray[0].height, spriteArray[1]);
     creatureSprite.set((widest - spriteArray[2].width) / 2, spriteArray[0].height + spriteArray[1].height, spriteArray[2]);
     updatePixels();
+    
+    // setting up all the objects
+    creature = new Creature(width / 2, height / 2, creatureSprite);
+    hungerBar = new StatusBar("Hunger", 100, 0);
+    funBar = new StatusBar("Fun", 100, 1);
+    healthBar = new StatusBar("Health", 100, 2);;
+    feedButton = new InteractButton('Feed', 200, 0, 5, 10, 'F');
+    toyButton = new InteractButton('Toy', 200, 1, 10, 10, 'T');
+    vetButton = new InteractButton('Vet', 200, 2, 15, 10, 'V');
 }
 
 class Creature {
@@ -176,34 +291,53 @@ class Creature {
         this.x = x;
         this.y = y;
         this.statArray = []
-        this.statArray[0] = 50; //HUNGER
-        this.statArray[1] = 50; //FUN
-        this.statArray[2] = 50; //HEALTH
+        this.statArray[0] = 60; //HUNGER
+        this.statArray[1] = 60; //FUN
+        this.statArray[2] = 60; //HEALTH
         this.highStat = 80;
         this.lowStat = 20;
+        this.isAlive = true;
+        this.happiness = (this.statArray[0] + this.statArray[1] + this.statArray[2]) / (this.maxStat * 3)
       
+        //Movement stuff
         this.chanceTimer = 0;
-        this.chanceTime = 2200; //Controls how often the random chance for the creatue to move occurs
+        this.chanceTime = 4000; //Controls how often the random chance for the creatue to move occurs
         this.isMoving = false;  
         this.movingTimer = 0;   
-        this.movingTime = 1000; //Controls how long the creature moves for
+        this.movingTime = 1800; //Controls how long the creature moves for
         this.moveUpdate = 10;   //Controls the rate at which the creatue is moved
         this.updateTimer = 0;
         this.moveSpeed = 3;     //Controls how fast the creature moves
         this.movingRight = false;
+        
+        //Dialogue Stuff
+        this.dialogueTime = 2000;
+        this.dialogueTimer = this.dialogueTime + 1;
+        this.textColor = 0;
+        this.dialogueFrequency = 10000;
+        this.diaFreqTimer = 0;
+        this.words = "a";
+        this.prevWords = this.words;
+        this.textHeight = height / 2;
+        //temp
 
         this.sprite = sprite;
-        this.maxStat = maxStat
+        this.maxStat = maxStat;
     }
 
     fixedUpdate() { //CREATURE FIXED UPDATE, RUNS EVERY fixedUpdateFrequency SECONDS, called in global fixedUpdate()
         for (let i = 0; i < 3; i++){ //FOR EVERY STAT
             let rand = random(100);
             if (rand < decrementStatProbability){ //CHANCE TO DECREMENT THAT STAT
-                this.decreaseStat(i, 5);
-                print("random decrease")
+                //Decreases stats by a lot more if any stat is super low
+                if (min(this.statArray) <= 5) {
+                    this.decreaseStat(i, 15);
+                }
+                else {
+                    this.decreaseStat(i, 5);
+                }              
+                //print("random decrease")
             }
-            
 
             if (this.statArray[i] > this.highStat){
                 rand = random(100);
@@ -224,29 +358,35 @@ class Creature {
     draw() { //CREATURE ANIMATION LOOP, moves the creature in short increments that randomly occur where the frequency is based on overall happiness
         image(this.sprite, this.x - this.sprite.width / 2, this.y - this.sprite.height / 2);
 
-        //Randomly decides when the creature should move on a fixed update cycle
+        if(!this.isAlive) {
+            return;
+        }
+
+        this.happiness = (this.statArray[0] + this.statArray[1] + this.statArray[2]) / (this.maxStat * 3);
+        
+        //Checks if the creature should start moving, time between movements are somewhat random
         if (this.chanceTimer >= this.chanceTime) {
             if (!this.isMoving) {
-                this.chanceTimer = 0;
-                //Rolls a random chance based on the creatures current stats
-                let chance = random(0, this.maxStat * 3);
-                if (chance < this.statArray[0] + this.statArray[1] + this.statArray[2]) {
-                    this.isMoving = true;
-                    this.movingTimer = 0;
-                    //Randomly picks whether the creature moves left or right
-                    chance = random(0, 2);
-                    if (chance < 1) {
-                        this.movingRight = true;
-                    }
-                    else {
-                        this.movingRight = false;
-                    }
+                //resets timers with some randomness and sets other vars
+                this.chanceTimer = random(this.chanceTime / 4);
+                this.isMoving = true;
+                this.movingTimer = random(this.movingTime / 2);
+                
+                let chance = random(0, 2);
+                //Randomly picks whether the creature moves left or right
+                if (chance < 1) {
+                    this.movingRight = true;
                 }
+                else {
+                    this.movingRight = false;
+                }     
                 return;
             }
         }
         else {
-            this.chanceTimer += deltaTime;
+            if (!this.isMoving) {
+                this.chanceTimer += deltaTime;
+            }
         }
 
         //Moves the creature left and right on a fixed update cycle
@@ -258,10 +398,9 @@ class Creature {
             this.movingTimer += deltaTime;
 
             //updates moveSpeed based on current happiness
-            let happiness = (this.statArray[0] + this.statArray[1] + this.statArray[2]) / (this.maxStat * 3);
-            if (happiness < 0.33) {
+            if (this.happiness < 0.33) {
                 this.moveSpeed = 1;
-            } else if (happiness < 0.66) {
+            } else if (this.happiness < 0.66) {
                 this.moveSpeed = 2;
             } else {
                 this.moveSpeed = 3;
@@ -297,13 +436,86 @@ class Creature {
                 this.updateTimer += deltaTime;
             }
         }
+
+        // Distort the sprite with noise
+        // this.sprite.loadPixels();
+        // for (let i = 0; i < (this.sprite.width * this.sprite.height); i++){
+        //     this.sprite.pixels[i] = noise(1 - this.happiness);
+        // }
+        // this.sprite.updatePixels();
+    }
+
+    dialogue() {
+        if(!this.isAlive) {
+            return;
+        }
+        //Checks if dialogue isn't currently being displayed
+        if (this.dialogueTimer > this.dialogueTime) {
+            //Checks if dialogue should now be display
+            if (this.diaFreqTimer > this.dialogueFrequency) {
+                //Reset timers
+                this.diaFreqTimer = random(this.dialogueFrequency / 3);
+                this.dialogueTimer = 0;
+
+                //Generate random height for the text to be displayed at
+                this.textHeight = this.y;
+                let randomizer = random(1) < 0.5 ? -1 : 1;
+                this.textHeight += int(random(this.sprite.height / 4)) * randomizer;
+
+                //Generates text based on current overall happiness
+                if (this.happiness < 0.33) {
+                    //Makes sure it doesn't say the same phrase twice in a row
+                    while (this.words == this.prevWords) {
+                        this.words = random(angryText);
+                    }                  
+                } else if (this.happiness < 0.66) {
+                    while (this.words == this.prevWords) {
+                        this.words = random(neutralText);
+                    }
+                } else {
+                    while (this.words == this.prevWords) {
+                        this.words = random(happyText);
+                    }
+                }
+                this.prevWords = this.words;
+            }
+            //Increments timer for when dialogue should next be displayed
+            else {
+                this.diaFreqTimer += deltaTime;
+            }
+        }
+        //Displays Text
+        else {     
+            //Checks whether the dialogue should be on the left or right of the creature
+            if (this.x > width / 2) {
+                textAlign(RIGHT, TOP);
+                fill(this.textColor);
+                noStroke();
+                textSize(15);
+                text(this.words, this.x - int(this.sprite.width / 1.5) - 150, this.textHeight, 150); 
+            }
+            else {
+                textAlign(LEFT, TOP);
+                fill(this.textColor);
+                noStroke();
+                textSize(15);
+                text(this.words, this.x + int(this.sprite.width / 1.5), this.textHeight, 150);        
+            }
+            this.dialogueTimer += deltaTime;
+        }      
     }
     
     increaseStat(statIndex, increment, cost){
-        money -= cost;
-        this.statArray[statIndex] += increment;
-        if (this.statArray[statIndex] > this.maxStat) {
-            this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
+        if (money < cost){
+            console.log("Not Enough Money") //replace with something thats not a print statement
+            return;
+        }
+        else if (this.statArray[statIndex] < this.maxStat) {
+            money -= cost;
+            this.statArray[statIndex] += increment;
+            if (this.statArray[statIndex] > this.maxStat) {
+                this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
+            }
         }
         switch (statIndex){
             case 0: // HUNGER
@@ -394,13 +606,36 @@ class StatusBar {
         rect(this.x, this.y, this.barWidth, this.barHeight);
         fill(0);
         noStroke();
+        textSize(15);
         textAlign(CENTER, CENTER);
         text(this.text, this.x + (this.barWidth / 2), this.y + (this.barHeight / 2));
     }
 }
 
+class StartButton {
+    constructor(text) {
+        this.width = 120;
+        this.height = 40;
+        this.x = (width / 2) - (this.width / 2);
+        this.y = (height / 2) - (this.height / 2);
+        this.color = 200;
+        this.text = text;
+    }
+
+    draw() {
+        fill(this.color);
+        stroke(0);
+        strokeWeight(1.5);
+        rect(this.x, this.y, this.width, this.height);
+        fill(0);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        textSize(15);
+        text(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
+    }
+}
+
 class InteractButton {
-    // might change these to button, in which case key isnt necessary
     constructor(interaction, color, statIndex, initialCost, initialEffect, key) {
         this.text = interaction;
         this.key = key;
@@ -416,22 +651,18 @@ class InteractButton {
         this.timesPressed = 0; // used to decrease the effectivness of interaction or increase the cost of interaction?
     }
 
-    // gets called when certain key is pressed
+    // gets called when certain key or the mouse is pressed
     update() {
-        if (money < this.cost) {
-            console.log("Not Enough Money") //replace with something thats not a print statement
-            return;
-        }
-        if (money >= this.cost && creature.statArray[this.statIndex] < creature.maxStat) {
+        if (creature.isAlive && money >= this.cost && creature.statArray[this.statIndex] < creature.maxStat) {
             creature.increaseStat(this.statIndex, this.effect, this.cost);
             this.timesPressed += 1;
             // deals with increasing cost / decreasing effect (not finished yet)
             // right now, all this does is increase the cost and decrease the effectiveness every 5 times it is used
             if ((this.timesPressed != 0) && (this.timesPressed % 5) == 0) {
                 this.cost += 5;
-                this.effect -= 1;
+                this.effect -= 2;
                 if (this.effect < 0) {
-                    this.effect = 1; // maybe we DO want to reach a point where it becomes completely ineffective
+                    this.effect = 0.5;
                 }
             }
         }
