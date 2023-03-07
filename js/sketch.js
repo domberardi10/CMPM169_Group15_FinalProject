@@ -5,11 +5,10 @@
 // global variables
 let VIEWPORTSIZE = 400;
 let money;
-let startStat = 50;
 let startingMoney = 100;
 let eventProbability = 10; // PERCENT CHANCE OF EVENT HAPPENING EVERY FIXED UPDATE
-let decrementStatProbability = 40; // PERCENT CHANCE OF STAT DECREMENTING EVERY FIXEDUPDATE()
-let fixedUpdateFrequency = 1; //fixedUpdate happens every x seconds
+let decrementStatProbability = 45; // PERCENT CHANCE OF STAT DECREMENTING EVERY FIXEDUPDATE()
+let fixedUpdateFrequency = 2; //fixedUpdate happens every x seconds
 let fixedUpdateTimer = 0; //tracking time to check if fixedUpdate should happen
 let startButton;
 let startButtonPressed = false;
@@ -157,6 +156,15 @@ function draw() {
     textAlign(CENTER, CENTER);
     textSize(48);
     text("YANABOCCHI", width / 2, (height / 2) - 250);
+    fill("#C1E1C1");
+    stroke(0);
+    strokeWeight(2);
+    circle((width / 2) - 150, (height / 2) + 275, 100);
+    circle((width / 2) + 150, (height / 2) + 275, 100);
+    circle((width / 2), (height / 2) + 300, 100);
+    noFill();
+    noStroke();
+    strokeWeight(3);
     
     // runs only after game starts
     if (startButtonPressed) {
@@ -234,36 +242,43 @@ function keyPressed() {
     }
 }
 
+function mouseWithinBounds(x, y, width, height) {
+    if ((mouseX > x) && (mouseX < x + width) && (mouseY > y) && (mouseY < y + height)) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 // for all of the buttons
 function mousePressed() {
     // start/restart button
-    if ((mouseX > startButton.x) && (mouseX < startButton.x + startButton.width)
-    && (mouseY > startButton.y) && (mouseY < startButton.y + startButton.height) && !startButtonPressed) {
+    if (mouseWithinBounds(startButton.x, startButton.y, startButton.width, startButton.height) && !startButtonPressed) {
         money = startingMoney;
         generateRandomCreature();
         startButtonPressed = true;
     }
-    if ((mouseX > restartButton.x) && (mouseX < restartButton.x + restartButton.width)
-    && (mouseY > restartButton.y) && (mouseY < restartButton.y + restartButton.height) && !creature.isAlive) {
+    if (mouseWithinBounds(restartButton.x, restartButton.y, restartButton.width, restartButton.height) && !creature.isAlive) {
         money = startingMoney;
         generateRandomCreature();
     }
     // interact buttons
-    if ((mouseX > feedButton.x) && (mouseX < feedButton.x + feedButton.buttonWidth)
-    && (mouseY > feedButton.y) && (mouseY < feedButton.y + feedButton.buttonHeight) && startButtonPressed) {
+    if (mouseWithinBounds(feedButton.x, feedButton.y, feedButton.buttonWidth, feedButton.buttonHeight) && startButtonPressed) {
         feedButton.update();
     }
-    if ((mouseX > toyButton.x) && (mouseX < toyButton.x + toyButton.buttonWidth)
-    && (mouseY > toyButton.y) && (mouseY < toyButton.y + toyButton.buttonHeight) && startButtonPressed) {
+    if (mouseWithinBounds(toyButton.x, toyButton.y, toyButton.buttonWidth, toyButton.buttonHeight) && startButtonPressed) {
         toyButton.update();
     }
-    if ((mouseX > vetButton.x) && (mouseX < vetButton.x + vetButton.buttonWidth)
-    && (mouseY > vetButton.y) && (mouseY < vetButton.y + vetButton.buttonHeight) && startButtonPressed) {
+    if (mouseWithinBounds(vetButton.x, vetButton.y, vetButton.buttonWidth, vetButton.buttonHeight) && startButtonPressed) {
         vetButton.update();
     }
 }
 
 function generateRandomCreature() {
+    //Reset sprite array
+    spriteArray = [];
+    
     //Randomly select body parts and store them in an array
     spriteArray.push(random(heads));
     spriteArray.push(random(bodies));
@@ -506,17 +521,11 @@ class Creature {
         }      
     }
     
-    increaseStat(statIndex, increment, cost){
-        if (money < cost){
-            console.log("Not Enough Money") //replace with something thats not a print statement
-            return;
-        }
-        else if (this.statArray[statIndex] < this.maxStat) {
-            money -= cost;
-            this.statArray[statIndex] += increment;
-            if (this.statArray[statIndex] > this.maxStat) {
-                this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
-            }
+    increaseStat(statIndex, increment, cost) {
+        money -= cost;
+        this.statArray[statIndex] += increment;
+        if (this.statArray[statIndex] > this.maxStat) {
+            this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
         }
         switch (statIndex){
             case 0: // HUNGER
@@ -654,6 +663,10 @@ class InteractButton {
 
     // gets called when certain key or the mouse is pressed
     update() {
+        if (money < this.cost){
+            console.log("Not Enough Money") //replace with something thats not a print statement
+            return;
+        }
         if (creature.isAlive && money >= this.cost && creature.statArray[this.statIndex] < creature.maxStat) {
             creature.increaseStat(this.statIndex, this.effect, this.cost);
             this.timesPressed += 1;
