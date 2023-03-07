@@ -35,38 +35,39 @@ let angryText = [];
 
 // preload() to load all images
 function preload() {
-    var folder = "assets/";
+    //var folder = "assets/";
 
-    // heads.push(loadImage("assets/head_test_yellow.PNG"));
-    // bodies.push(loadImage("assets/body_test_blue.PNG"));
-    // legs.push(loadImage("assets/legs_test_red.PNG"));
+    heads.push(loadImage("assets/head_test_yellow.PNG"));
+    heads.push(loadImage("assets/head_test_blue.PNG"));
+    heads.push(loadImage("assets/head_test_red.PNG"));
+    bodies.push(loadImage("assets/body_test_blue.PNG"));
+    bodies.push(loadImage("assets/body_test_yellow.PNG"));
+    bodies.push(loadImage("assets/body_test_red.PNG"));
+    legs.push(loadImage("assets/legs_test_red.PNG"));
+    legs.push(loadImage("assets/legs_test_blue.PNG"));
+    legs.push(loadImage("assets/legs_test_yellow.PNG"));
 
-    $.ajax({
-        url : folder,
-        success: function (data) {
-            $(data).find("a").attr("href", function (i, val) {
-                //console.log(val);
-                if( val.match(/\.(PNG.preview)$/) ) { 
-                    //val.replace(".preview", "");
-                    //val.split(".pre")[0];
-                    //console.log(val.split(".pre")[0]);
-                    img = loadImage(val.split(".pre")[0]);
-                    let val_copy = val;
-                    let val_body_part = val_copy.split("_test")[0];
-                    //console.log(val_body_part.split("/assets/").pop());
-                    if (val_body_part.split("/assets/").pop() == "head"){
-                        heads.push(img);
-                    }
-                    else if (val_body_part.split("/assets/").pop() == "body"){
-                        bodies.push(img);
-                    }
-                    else if (val_body_part.split("/assets/").pop() == "legs"){
-                        legs.push(img);
-                    }
-                } 
-            });
-        }
-    });
+    // $.ajax({
+    //     url : folder,
+    //     success: function (data) {
+    //         $(data).find("a").attr("href", function (i, val) {
+    //             if( val.match(/\.(PNG.preview)$/) ) { 
+    //                 img = loadImage(val.split(".pre")[0]);
+    //                 let val_copy = val;
+    //                 let val_body_part = val_copy.split("_test")[0];
+    //                 if (val_body_part.split("/assets/").pop() == "head"){
+    //                     heads.push(img);
+    //                 }
+    //                 else if (val_body_part.split("/assets/").pop() == "body"){
+    //                     bodies.push(img);
+    //                 }
+    //                 else if (val_body_part.split("/assets/").pop() == "legs"){
+    //                     legs.push(img);
+    //                 }
+    //             } 
+    //         });
+    //     }
+    // });
 
     textArray = loadStrings('dialouge.txt');
 }
