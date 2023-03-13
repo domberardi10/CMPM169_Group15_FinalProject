@@ -151,18 +151,17 @@ function draw() {
     fill("#ffffff");
     strokeWeight(3);
     square(width / 2 - (VIEWPORTSIZE / 2), height / 2 - (VIEWPORTSIZE / 2), VIEWPORTSIZE);
+    fill("#C1E1C1");
+    stroke(0);
+    strokeWeight(2);
+    circle((width / 2) - 150, (height / 2) + 275, 100);
+    circle((width / 2), (height / 2) + 300, 100);
+    circle((width / 2) + 150, (height / 2) + 275, 100);
     fill(0);
     noStroke();
     textAlign(CENTER, CENTER);
     textSize(48);
     text("YANABOCCHI", width / 2, (height / 2) - 250);
-    fill("#C1E1C1");
-    stroke(0);
-    strokeWeight(2);
-    circle((width / 2) - 150, (height / 2) + 275, 100);
-    circle((width / 2) + 150, (height / 2) + 275, 100);
-    circle((width / 2), (height / 2) + 300, 100);
-    noFill();
     noStroke();
     strokeWeight(3);
     
@@ -242,8 +241,18 @@ function keyPressed() {
     }
 }
 
-function mouseWithinBounds(x, y, width, height) {
+function mouseWithinRect(x, y, width, height) {
     if ((mouseX > x) && (mouseX < x + width) && (mouseY > y) && (mouseY < y + height)) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+function mouseWithinCircle(x, y, radius) {
+    let dist = sqrt(((mouseX - x) * (mouseX - x)) +((mouseY - y) * (mouseY - y)));
+    if (radius > abs(dist)) {
         return true;
     }
     else {
@@ -254,23 +263,23 @@ function mouseWithinBounds(x, y, width, height) {
 // for all of the buttons
 function mousePressed() {
     // start/restart button
-    if (mouseWithinBounds(startButton.x, startButton.y, startButton.width, startButton.height) && !startButtonPressed) {
+    if (mouseWithinRect(startButton.x, startButton.y, startButton.width, startButton.height) && !startButtonPressed) {
         money = startingMoney;
         generateRandomCreature();
         startButtonPressed = true;
     }
-    if (mouseWithinBounds(restartButton.x, restartButton.y, restartButton.width, restartButton.height) && !creature.isAlive) {
+    if (mouseWithinRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height) && !creature.isAlive) {
         money = startingMoney;
         generateRandomCreature();
     }
     // interact buttons
-    if (mouseWithinBounds(feedButton.x, feedButton.y, feedButton.buttonWidth, feedButton.buttonHeight) && startButtonPressed) {
+    if (startButtonPressed && mouseWithinCircle(feedButton.cx, feedButton.cy, 100)) {
         feedButton.update();
     }
-    if (mouseWithinBounds(toyButton.x, toyButton.y, toyButton.buttonWidth, toyButton.buttonHeight) && startButtonPressed) {
+    if (startButtonPressed && mouseWithinCircle(toyButton.cx, toyButton.cy, 100)) {
         toyButton.update();
     }
-    if (mouseWithinBounds(vetButton.x, vetButton.y, vetButton.buttonWidth, vetButton.buttonHeight) && startButtonPressed) {
+    if (startButtonPressed && mouseWithinCircle(vetButton.cx, vetButton.cy, 100)) {
         vetButton.update();
     }
 }
@@ -330,8 +339,8 @@ class Creature {
         this.dialogueTime = 2000;
         this.dialogueTimer = this.dialogueTime + 1;
         this.textColor = 0;
-        this.dialogueFrequency = 10000;
-        this.diaFreqTimer = 0;
+        this.statDialogueFrequency = 10000;
+        this.statDiaFreqTimer = 0;
         this.words = "a";
         this.prevWords = this.words;
         this.textHeight = height / 2;
@@ -461,6 +470,10 @@ class Creature {
         // this.sprite.updatePixels();
     }
 
+    statDialogue(){
+
+    }
+
     dialogue() {
         if(!this.isAlive) {
             return;
@@ -468,9 +481,9 @@ class Creature {
         //Checks if dialogue isn't currently being displayed
         if (this.dialogueTimer > this.dialogueTime) {
             //Checks if dialogue should now be display
-            if (this.diaFreqTimer > this.dialogueFrequency) {
+            if (this.statDiaFreqTimer > this.statDialogueFrequency) {
                 //Reset timers
-                this.diaFreqTimer = random(this.dialogueFrequency / 3);
+                this.statDiaFreqTimer = random(this.statDialogueFrequency / 3);
                 this.dialogueTimer = 0;
 
                 //Generate random height for the text to be displayed at
@@ -497,28 +510,31 @@ class Creature {
             }
             //Increments timer for when dialogue should next be displayed
             else {
-                this.diaFreqTimer += deltaTime;
+                this.statDiaFreqTimer += deltaTime;
             }
         }
         //Displays Text
         else {     
-            //Checks whether the dialogue should be on the left or right of the creature
-            if (this.x > width / 2) {
-                textAlign(RIGHT, TOP);
-                fill(this.textColor);
-                noStroke();
-                textSize(15);
-                text(this.words, this.x - int(this.sprite.width / 1.5) - 150, this.textHeight, 150); 
-            }
-            else {
-                textAlign(LEFT, TOP);
-                fill(this.textColor);
-                noStroke();
-                textSize(15);
-                text(this.words, this.x + int(this.sprite.width / 1.5), this.textHeight, 150);        
-            }
-            this.dialogueTimer += deltaTime;
+            this.showDialogue(this.words);
         }      
+    }
+
+    showDialogue(textToShow){           
+        if (this.x > width / 2) {//Checks whether the dialogue should be on the left or right of the creature
+            textAlign(RIGHT, TOP);
+            fill(this.textColor);
+            noStroke();
+            textSize(15);
+            text(textToShow, this.x - int(this.sprite.width / 1.5) - 150, this.textHeight, 150); 
+        }
+        else {
+            textAlign(LEFT, TOP);
+            fill(this.textColor);
+            noStroke();
+            textSize(15);
+            text(textToShow, this.x + int(this.sprite.width / 1.5), this.textHeight, 150);        
+        }
+        this.dialogueTimer += deltaTime;
     }
     
     increaseStat(statIndex, increment, cost) {
@@ -652,6 +668,7 @@ class InteractButton {
         this.color = color;
         this.statIndex = statIndex;
         let offset = 10;
+        // for on screen display
         this.buttonWidth = (VIEWPORTSIZE - (4 * offset)) / 3;
         this.buttonHeight = 40;
         this.x = offset + ((width / 2) - (VIEWPORTSIZE / 2)) + (offset * statIndex) + (this.buttonWidth * statIndex);
@@ -659,6 +676,21 @@ class InteractButton {
         this.cost = initialCost;
         this.effect = initialEffect;
         this.timesPressed = 0; // used to decrease the effectivness of interaction or increase the cost of interaction?
+        // for circle buttons
+        this.cx = 0;
+        this.cy = 0;
+        if (statIndex == 0) {
+            this.cx = (width / 2) - 150;
+            this.cy = (height / 2) + 275;
+        }
+        if (statIndex == 1) {
+            this.cx = (width / 2);
+            this.cy = (height / 2) + 300;
+        }
+        if (statIndex == 2) {
+            this.cx = (width / 2) + 150;
+            this.cy = (height / 2) + 275;
+        }
     }
 
     // gets called when certain key or the mouse is pressed
@@ -674,9 +706,9 @@ class InteractButton {
             // right now, all this does is increase the cost and decrease the effectiveness every 5 times it is used
             if ((this.timesPressed != 0) && (this.timesPressed % 5) == 0) {
                 this.cost += 5;
-                this.effect -= 2;
+                this.effect -= 1; 
                 if (this.effect < 0) {
-                    this.effect = 0.5;
+                    this.effect = 0.5; // makes sure the effect never becomes 0
                 }
             }
         }
@@ -693,5 +725,11 @@ class InteractButton {
         textSize(15);
         let display = this.text + "   $" + String(this.cost) + "   [" + this.key + "]";
         text(display, this.x + (this.buttonWidth / 2), this.y + (this.buttonHeight / 2));
+        // circle buttons
+        fill("#C1E1C1");
+        stroke(0);
+        strokeWeight(2);
+        circle(this.cx, this.cy, 100);
     }
 }
+
