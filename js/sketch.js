@@ -60,6 +60,7 @@ function preload() {
 
     // sound music/sfx
     music = loadSound("assets/music.mp3");
+    music.setVolume(0.3);
     buttonSFX = loadSound("assets/Button Press.mp3");
     buttonSFX.setVolume(0.7);
     screenSFX = loadSound("assets/Screen Button Press.mp3");
@@ -223,7 +224,6 @@ function draw() {
             restartButton.draw();
             // reset music
             music.stop();
-            windSFX.play();
             windSFX.loop();
             music_speed = 1;
         }
@@ -340,7 +340,6 @@ function generateRandomCreature() {
 
     // playing music
     music.loop();
-    music.setVolume(0.3);
 }
 
 class Creature {
