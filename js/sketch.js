@@ -3,6 +3,7 @@
 // Date:
 
 // global variables
+let bg;
 let VIEWPORTSIZE = 400;
 let money;
 let startingMoney = 100;
@@ -21,12 +22,19 @@ let img;
 let hungerBar, funBar, healthBar;
 let feedButton, toyButton, vetButton;
 
+// assets
+let music;
+let music_speed = 1;
+let buttonSFX, screenSFX, eatSFX, toySFX, vetSFX, noMoneySFX, getMoneySFX, windSFX;
+let titleFont;
+let wordsFont;
 // arrays of images/sprites
 let heads = [];
 let bodies = [];
 let legs = [];
 let spriteArray = [];
 
+// arrays of text
 let textArray = [];
 let happyText = [];
 let neutralText = [];
@@ -34,48 +42,50 @@ let angryText = [];
 
 // preload() to load all images
 function preload() {
-    //var folder = "assets/";
 
-    heads.push(loadImage("assets/head_test_yellow.PNG"));
-    heads.push(loadImage("assets/head_test_blue.PNG"));
-    heads.push(loadImage("assets/head_test_red.PNG"));
-    bodies.push(loadImage("assets/body_test_blue.PNG"));
-    bodies.push(loadImage("assets/body_test_yellow.PNG"));
-    bodies.push(loadImage("assets/body_test_red.PNG"));
-    legs.push(loadImage("assets/legs_test_red.PNG"));
-    legs.push(loadImage("assets/legs_test_blue.PNG"));
-    legs.push(loadImage("assets/legs_test_yellow.PNG"));
+    heads.push(loadImage("assets/head_cassowary.png"));
+    heads.push(loadImage("assets/head_jerboa.png"));
+    heads.push(loadImage("assets/head_kangaroo.png"));
 
-    // $.ajax({
-    //     url : folder,
-    //     success: function (data) {
-    //         $(data).find("a").attr("href", function (i, val) {
-    //             if( val.match(/\.(PNG.preview)$/) ) { 
-    //                 img = loadImage(val.split(".pre")[0]);
-    //                 let val_copy = val;
-    //                 let val_body_part = val_copy.split("_test")[0];
-    //                 if (val_body_part.split("/assets/").pop() == "head"){
-    //                     heads.push(img);
-    //                 }
-    //                 else if (val_body_part.split("/assets/").pop() == "body"){
-    //                     bodies.push(img);
-    //                 }
-    //                 else if (val_body_part.split("/assets/").pop() == "legs"){
-    //                     legs.push(img);
-    //                 }
-    //             } 
-    //         });
-    //     }
-    // });
+    bodies.push(loadImage("assets/body_cassowary.png"));
+    bodies.push(loadImage("assets/body_jerboa.png"));
+    bodies.push(loadImage("assets/body_kangaroo.png"));
 
-    textArray = loadStrings('dialouge.txt');
+    legs.push(loadImage("assets/legs_cassowary.png"));
+    legs.push(loadImage("assets/legs_jerboa.png"));
+    legs.push(loadImage("assets/legs_kangaroo.png"));
+
+    // load dialouge
+    textArray = loadStrings('assets/dialouge.txt');
+
+    // sound music/sfx
+    music = loadSound("assets/music.mp3");
+    buttonSFX = loadSound("assets/Button Press.mp3");
+    buttonSFX.setVolume(0.7);
+    screenSFX = loadSound("assets/Screen Button Press.mp3");
+    screenSFX.setVolume(0.3);
+    eatSFX = loadSound("assets/Eat Sound.mp3");
+    eatSFX.setVolume(0.3);
+    toySFX = loadSound("assets/Toy Sound.mp3");
+    toySFX.setVolume(0.3);
+    vetSFX = loadSound("assets/Vet Sound.mp3");
+    vetSFX.setVolume(0.3);
+    noMoneySFX = loadSound("assets/Not Enough Money.mp3");
+    noMoneySFX.setVolume(0.3);
+    windSFX = loadSound("assets/Wind.mp3");
+    windSFX.setVolume(0.02);
+    
+    // load fonts
+    titleFont = loadFont("assets/Komika_Hand.ttf");
+    wordsFont = loadFont("assets/Geometry_Soft_Pro-Bold_N.otf");
 }
 
 
 // setup() function is called once when the program starts
 function setup() {
     createCanvas(windowWidth, windowHeight);
-    background(225);
+    bg = loadImage("assets/backpack.jpg");
+    //background(225);
     money = startingMoney;
     
     startButton = new StartButton('Generate Pet!');
@@ -131,47 +141,54 @@ function draw() {
     //console.log(mouseX, mouseY);
 
     // STUFF DRAWN NO MATTER WHAT
-    background("#f7f6cf"); 
+    background(bg);
 
     //Canvas draw
     stroke(0);
     strokeWeight(2);
-    fill("#b6d8f2");
+    radialGradient(width/2, height/2, 0, width/2, height/2, 500, color(158, 198, 255), color(37, 71, 120));
     beginShape();
     vertex((width / 2) - 350, (height / 2) + 50);
     bezierVertex((width / 2) - 400, (height / 2) + 550, (width / 2) + 400, (height / 2) + 550, (width / 2) + 350, (height / 2) + 50);
     bezierVertex((width / 2) + 300, (height / 2) - 600, (width / 2) - 300, (height / 2) - 600, (width / 2) - 350, (height / 2) + 50);
-    // vertex((width / 2) - 350, (height / 2) + 300);
-    // bezierVertex((width / 2) - 300, (height / 2) + 400, (width / 2) + 300, (height / 2) + 400, (width / 2) + 350, (height / 2) + 300);
-    // bezierVertex((width / 2) + 550, (height / 2), (width / 2) + 250, (height / 2) - 400, (width / 2), (height / 2) - 400);
-    // bezierVertex((width / 2) - 250, (height / 2) - 400, (width / 2) - 550, (height / 2), (width / 2) - 350, (height / 2) + 300);
     endShape();
-    //ellipse(width / 2, height / 2, 600, 800);
     noFill();
-    fill("#ffffff");
+    fill("#d6f2d3");
+    radialGradient(width/2, height/2, 0, width/2, height/2, 200, color(222, 255, 222), color(138, 191, 138));
     strokeWeight(3);
     square(width / 2 - (VIEWPORTSIZE / 2), height / 2 - (VIEWPORTSIZE / 2), VIEWPORTSIZE);
-    fill("#C1E1C1");
+    fill("#f7f6cf");
     stroke(0);
     strokeWeight(2);
+    radialGradient((width / 2) - 150, (height / 2) + 275, 0, (width / 2) - 150, (height / 2) + 275, 50, color(201, 192, 62), color(247, 239, 129));
     circle((width / 2) - 150, (height / 2) + 275, 100);
+    radialGradient((width / 2), (height / 2) + 300, 0, (width / 2), (height / 2) + 300, 50, color(201, 192, 62), color(247, 239, 129));
     circle((width / 2), (height / 2) + 300, 100);
+    radialGradient((width / 2) + 150, (height / 2) + 275, 0, (width / 2) + 150, (height / 2) + 275, 50, color(201, 192, 62), color(247, 239, 129));
     circle((width / 2) + 150, (height / 2) + 275, 100);
-    fill(0);
-    noStroke();
+    fill(color(240, 140, 255));
+    strokeWeight(5);
     textAlign(CENTER, CENTER);
     textSize(48);
+    textFont(titleFont);
     text("YANABOCCHI", width / 2, (height / 2) - 250);
+    textFont(wordsFont);
     noStroke();
     strokeWeight(3);
     
     // runs only after game starts
     if (startButtonPressed) {
 
+        // audio stuff
+        music.rate(music_speed);
+        toySFX.rate(music_speed);
+        eatSFX.rate(music_speed);
+        vetSFX.rate(music_speed);
+        
+
         // animate creature and display dialouge
         creature.draw();
         creature.dialogue();
-        //image(creatureSprite, mouseX - creatureSprite.width / 2, mouseY - creatureSprite.height / 2);
 
         // update and display status bars
         hungerBar.update();
@@ -204,6 +221,11 @@ function draw() {
         if (creature.statArray[0] == 0 && creature.statArray[1] == 0 && creature.statArray[2] == 0){
             creature.isAlive = false;
             restartButton.draw();
+            // reset music
+            music.stop();
+            windSFX.play();
+            windSFX.loop();
+            music_speed = 1;
         }
     }
     else {
@@ -221,8 +243,8 @@ function fixedUpdate(){ // Runs every fixedUpdateFrequency seconds, use for thin
 
 function randomMoneyFixedUpdate(){
     let rand = random(100);
-    let chance = 35;
-    let increment = int(random(25, 50));
+    let chance = 45;
+    let increment = random([20, 25, 30, 35, 40]);
     if (rand < chance){
         console.log("Have some money :) ");
         money += increment;
@@ -265,21 +287,27 @@ function mousePressed() {
     // start/restart button
     if (mouseWithinRect(startButton.x, startButton.y, startButton.width, startButton.height) && !startButtonPressed) {
         money = startingMoney;
+        screenSFX.play();
         generateRandomCreature();
         startButtonPressed = true;
     }
     if (mouseWithinRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height) && !creature.isAlive) {
         money = startingMoney;
+        windSFX.stop();
+        screenSFX.play();       
         generateRandomCreature();
     }
     // interact buttons
     if (startButtonPressed && mouseWithinCircle(feedButton.cx, feedButton.cy, 100)) {
+        buttonSFX.play();
         feedButton.update();
     }
     if (startButtonPressed && mouseWithinCircle(toyButton.cx, toyButton.cy, 100)) {
+        buttonSFX.play();
         toyButton.update();
     }
     if (startButtonPressed && mouseWithinCircle(vetButton.cx, vetButton.cy, 100)) {
+        buttonSFX.play();
         vetButton.update();
     }
 }
@@ -295,20 +323,24 @@ function generateRandomCreature() {
 
     //Stacks the 3 images on top of eachother to create a new image
     let widest = max(spriteArray[0].width, spriteArray[1].width, spriteArray[2].width);
-    creatureSprite = createImage(widest, spriteArray[0].height + spriteArray[1].height + spriteArray[2].height);
-    creatureSprite.set((widest - spriteArray[0].width) / 2, 0, spriteArray[0]);
-    creatureSprite.set((widest - spriteArray[1].width) / 2, spriteArray[0].height, spriteArray[1]);
-    creatureSprite.set((widest - spriteArray[2].width) / 2, spriteArray[0].height + spriteArray[1].height, spriteArray[2]);
+    creatureSprite = createImage(widest, (spriteArray[0].height + spriteArray[1].height + spriteArray[2].height) / 3);
+    creatureSprite.set((widest - spriteArray[0].width) / 2, 0, spriteArray[0].get(0, 0, spriteArray[0].width, creatureSprite.height / 3));
+    creatureSprite.set((widest - spriteArray[1].width) / 2, creatureSprite.height / 3, spriteArray[1].get(0, creatureSprite.height / 3, spriteArray[1].width, creatureSprite.height / 3));
+    creatureSprite.set((widest - spriteArray[2].width) / 2, creatureSprite.height / (3/2), spriteArray[2].get(0, creatureSprite.height / (3/2), spriteArray[2].width, creatureSprite.height / 3));
     updatePixels();
     
     // setting up all the objects
     creature = new Creature(width / 2, height / 2, creatureSprite);
-    hungerBar = new StatusBar("Hunger", 100, 0);
-    funBar = new StatusBar("Fun", 100, 1);
-    healthBar = new StatusBar("Health", 100, 2);;
+    hungerBar = new StatusBar("Hunger", 0, 0);
+    funBar = new StatusBar("Fun", 0, 1);
+    healthBar = new StatusBar("Health", 0, 2);;
     feedButton = new InteractButton('Feed', 200, 0, 5, 10, 'F');
     toyButton = new InteractButton('Toy', 200, 1, 10, 10, 'T');
     vetButton = new InteractButton('Vet', 200, 2, 15, 10, 'V');
+
+    // playing music
+    music.loop();
+    music.setVolume(0.3);
 }
 
 class Creature {
@@ -316,13 +348,19 @@ class Creature {
         this.x = x;
         this.y = y;
         this.statArray = []
-        this.statArray[0] = 60; //HUNGER
-        this.statArray[1] = 60; //FUN
-        this.statArray[2] = 60; //HEALTH
+        this.statArray[0] = 90; //HUNGER
+        this.statArray[1] = 90; //FUN
+        this.statArray[2] = 90; //HEALTH
         this.highStat = 80;
         this.lowStat = 20;
         this.isAlive = true;
-        this.happiness = (this.statArray[0] + this.statArray[1] + this.statArray[2]) / (this.maxStat * 3)
+        this.happiness = (this.statArray[0] + this.statArray[1] + this.statArray[2]) / (this.maxStat * 3);
+        this.prevHappiness = 0;
+
+        this.wavinessX = 0;  // smaller number = fewer repetitions
+        this.wavinessY = 0;
+        this.periodX = 10;  // smaller number = more
+        this.periodY = 10;
       
         //Movement stuff
         this.chanceTimer = 0;
@@ -339,7 +377,7 @@ class Creature {
         this.dialogueTime = 2000;
         this.dialogueTimer = this.dialogueTime + 1;
         this.textColor = 0;
-        this.statDialogueFrequency = 10000;
+        this.statDialogueFrequency = 5000;
         this.statDiaFreqTimer = 0;
         this.words = "a";
         this.prevWords = this.words;
@@ -347,7 +385,9 @@ class Creature {
         //temp
 
         this.sprite = sprite;
+        this.originalSprite = sprite;
         this.maxStat = maxStat;
+        this.facingRight = false;
     }
 
     fixedUpdate() { //CREATURE FIXED UPDATE, RUNS EVERY fixedUpdateFrequency SECONDS, called in global fixedUpdate()
@@ -356,12 +396,13 @@ class Creature {
             if (rand < decrementStatProbability){ //CHANCE TO DECREMENT THAT STAT
                 //Decreases stats by a lot more if any stat is super low
                 if (min(this.statArray) <= 5) {
-                    this.decreaseStat(i, 15);
+                    let decrement = int(random(15, 20));
+                    this.decreaseStat(i, decrement);
                 }
                 else {
-                    this.decreaseStat(i, 5);
+                    let decrement = int(random(5, 10));
+                    this.decreaseStat(i, decrement);
                 }              
-                //print("random decrease")
             }
 
             if (this.statArray[i] > this.highStat){
@@ -381,7 +422,27 @@ class Creature {
     }
 
     draw() { //CREATURE ANIMATION LOOP, moves the creature in short increments that randomly occur where the frequency is based on overall happiness
-        image(this.sprite, this.x - this.sprite.width / 2, this.y - this.sprite.height / 2);
+
+        this.happiness = (this.statArray[0] + this.statArray[1] + this.statArray[2]) / (this.maxStat * 3);
+
+        music_speed = map(this.happiness, 0, 1, 0.5, 1);
+
+        this.wavinessX = (1 - this.happiness) * 15;
+        this.wavinessY = (1 - this.happiness) * 15;
+
+        if ((this.prevHappiness - (this.prevHappiness % .01)) != (this.happiness - (this.happiness % .01))){
+            this.sprite = this.distort(this.originalSprite, this.wavinessX, this.wavinessY, this.periodX, this.periodY);
+        }
+
+        push();
+        if (this.facingRight) {
+            scale(-1, 1);
+            image(this.sprite, -int((this.x - this.sprite.width / 2) + (this.sprite.width / 1.75)), int(this.y - this.sprite.height / 2));
+        }
+        else {
+            image(this.sprite, int(this.x - this.sprite.width / 2), int(this.y - this.sprite.height / 2));
+        }     
+        pop();
 
         if(!this.isAlive) {
             return;
@@ -435,6 +496,7 @@ class Creature {
                 this.updateTimer = 0;
                 //Moves the creature right
                 if (this.movingRight) {
+                    this.facingRight = true;
                     //Checks if creature is near the right border (needs to start moving left)
                     if ((width / 2) + (VIEWPORTSIZE / 2) - (this.sprite.width) <= this.x) {
                         this.movingRight = false;
@@ -446,6 +508,7 @@ class Creature {
                 }
                 //Moves the create left
                 else {
+                    this.facingRight = false;
                     //Checks if creature is near the left border (needs to start moving right)
                     if ((width / 2) - (VIEWPORTSIZE / 2) + (this.sprite.width) >= this.x) {
                         this.movingRight = true;
@@ -462,16 +525,35 @@ class Creature {
             }
         }
 
-        // Distort the sprite with noise
-        // this.sprite.loadPixels();
-        // for (let i = 0; i < (this.sprite.width * this.sprite.height); i++){
-        //     this.sprite.pixels[i] = noise(1 - this.happiness);
-        // }
-        // this.sprite.updatePixels();
+        this.prevHappiness = this.happiness;
+        
     }
 
     statDialogue(){
 
+    }
+
+    distort(input, wavinessX, wavinessY, periodX, periodY) {
+        let output = createImage(input.width, input.height);
+        input.loadPixels();
+        output.loadPixels();
+        for (let y=0; y<input.height; y++) {
+          for (let x=0; x<input.width; x++) {      
+            
+            // this formula is where the magic happens!
+            // we calculate new x/y position and grab pixels
+            // from the source image at that location
+            let tempX = x + wavinessX * sin(x/periodX);
+            let tempY = y + wavinessY * sin(y/periodY);
+            let px = input.get(tempX, tempY);
+            
+            // then put those colors into the output
+            // image at the regular x/y position
+            output.set(x,y, px);
+          }
+        }
+        output.updatePixels();
+        return output;
     }
 
     dialogue() {
@@ -520,19 +602,31 @@ class Creature {
     }
 
     showDialogue(textToShow){           
-        if (this.x > width / 2) {//Checks whether the dialogue should be on the left or right of the creature
+        //Checks whether the dialogue should be on the left or right of the creature
+        if (this.x > width / 2) { //Show on left
             textAlign(RIGHT, TOP);
             fill(this.textColor);
             noStroke();
             textSize(15);
-            text(textToShow, this.x - int(this.sprite.width / 1.5) - 150, this.textHeight, 150); 
+            if (this.facingRight) {
+                text(textToShow, this.x - int((this.sprite.width / 2) - (VIEWPORTSIZE - this.sprite.width) / 3.75), this.textHeight, (VIEWPORTSIZE - this.sprite.width) / 2); 
+            }
+            else {
+                text(textToShow, this.x - int((this.sprite.width / 2) - (VIEWPORTSIZE - this.sprite.width) / 2), this.textHeight, (VIEWPORTSIZE - this.sprite.width) / 2); 
+            }
+            
         }
-        else {
+        else { //Show on right
             textAlign(LEFT, TOP);
             fill(this.textColor);
             noStroke();
             textSize(15);
-            text(textToShow, this.x + int(this.sprite.width / 1.5), this.textHeight, 150);        
+            if (this.facingRight) {
+                text(textToShow, this.x + int(this.sprite.width / 2) - this.sprite.width / 2, this.textHeight, (VIEWPORTSIZE - this.sprite.width) / 2);      
+            }
+            else {
+                text(textToShow, this.x + int(this.sprite.width / 2), this.textHeight, (VIEWPORTSIZE - this.sprite.width) / 2);      
+            }             
         }
         this.dialogueTimer += deltaTime;
     }
@@ -543,42 +637,12 @@ class Creature {
         if (this.statArray[statIndex] > this.maxStat) {
             this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
         }
-        switch (statIndex){
-            case 0: // HUNGER
-                //PLACEHOLDER
-                break;
-                
-            case 1: // FUN
-                //PLACEHOLDER
-                break;
-
-            case 2: // HEALTH
-                //PLACEHOLDER
-                break;
-            default:
-                print("statEvent(): INVALID STAT INDEX")
-        }
     }
 
     decreaseStat(statIndex, increment){
         this.statArray[statIndex] -= increment;
         if (this.statArray[statIndex] < 0){
             this.statArray[statIndex] = 0;
-        }
-        switch (statIndex){
-            case 0: // HUNGER
-                //PLACEHOLDER
-                break;
-                
-            case 1: // FUN
-                //PLACEHOLDER
-                break;
-
-            case 2: // HEALTH
-                //PLACEHOLDER
-                break;
-            default:
-                print("statEvent(): INVALID STAT INDEX")
         }
     }
 
@@ -599,7 +663,6 @@ class Creature {
                 print("statEvent(): INVALID STAT INDEX")
         }
     }
-
 }
 
 class StatusBar {
@@ -634,7 +697,7 @@ class StatusBar {
         noStroke();
         textSize(15);
         textAlign(CENTER, CENTER);
-        text(this.text, this.x + (this.barWidth / 2), this.y + (this.barHeight / 2));
+        text(this.text, this.x + (this.barWidth / 2), this.y + this.barHeight + 8);
     }
 }
 
@@ -649,7 +712,8 @@ class StartButton {
     }
 
     draw() {
-        fill(this.color);
+        //fill(this.color);
+        noFill();
         stroke(0);
         strokeWeight(1.5);
         rect(this.x, this.y, this.width, this.height);
@@ -696,26 +760,36 @@ class InteractButton {
     // gets called when certain key or the mouse is pressed
     update() {
         if (money < this.cost){
-            console.log("Not Enough Money") //replace with something thats not a print statement
+            console.log("Not Enough Money");
+            noMoneySFX.play();
             return;
         }
         if (creature.isAlive && money >= this.cost && creature.statArray[this.statIndex] < creature.maxStat) {
             creature.increaseStat(this.statIndex, this.effect, this.cost);
+            if (this.statIndex == 0) {
+                eatSFX.play();
+            } 
+            else if (this.statIndex == 1) {
+                toySFX.play();
+            }
+            else if (this.statIndex == 2) {
+                vetSFX.play();
+            }
             this.timesPressed += 1;
-            // deals with increasing cost / decreasing effect (not finished yet)
-            // right now, all this does is increase the cost and decrease the effectiveness every 5 times it is used
+            // deals with increasing cost / decreasing effect
             if ((this.timesPressed != 0) && (this.timesPressed % 5) == 0) {
                 this.cost += 5;
                 this.effect -= 1; 
                 if (this.effect < 0) {
-                    this.effect = 0.5; // makes sure the effect never becomes 0
+                    this.effect = 1; // makes sure the effect never becomes 0
                 }
             }
         }
     }
 
     draw() {
-        fill(this.color);
+        //fill(this.color);
+        noFill();
         stroke(0);
         strokeWeight(1.5);
         rect(this.x, this.y, this.buttonWidth, this.buttonHeight);
@@ -725,11 +799,12 @@ class InteractButton {
         textSize(15);
         let display = this.text + "   $" + String(this.cost) + "   [" + this.key + "]";
         text(display, this.x + (this.buttonWidth / 2), this.y + (this.buttonHeight / 2));
-        // circle buttons
-        fill("#C1E1C1");
-        stroke(0);
-        strokeWeight(2);
-        circle(this.cx, this.cy, 100);
     }
 }
 
+function radialGradient(sX, sY, sR, eX, eY, eR, sColor, eColor){
+    let gradient = drawingContext.createRadialGradient(sX, sY, sR, eX, eY, eR);
+    gradient.addColorStop(0, sColor);
+    gradient.addColorStop(1, eColor);
+    drawingContext.fillStyle = gradient;
+}
