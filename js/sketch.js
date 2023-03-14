@@ -296,6 +296,7 @@ function mousePressed() {
         windSFX.stop();
         screenSFX.play();       
         generateRandomCreature();
+        location.reload();
     }
     // interact buttons
     if (startButtonPressed && mouseWithinCircle(feedButton.cx, feedButton.cy, 100)) {
