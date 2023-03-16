@@ -8,7 +8,8 @@ let VIEWPORTSIZE = 400;
 let money;
 let startingMoney = 100;
 let eventProbability = 10; // PERCENT CHANCE OF EVENT HAPPENING EVERY FIXED UPDATE
-let decrementStatProbability = 45; // PERCENT CHANCE OF STAT DECREMENTING EVERY FIXEDUPDATE()
+let decrementStatProbability = 55; // PERCENT CHANCE OF STAT DECREMENTING EVERY FIXEDUPDATE()
+let increaseMoneyProbability = 50; // PERCENT CHANCE OF GETTING EXTRA MONEY EACH FIXED UPDATE
 let fixedUpdateFrequency = 2; //fixedUpdate happens every x seconds
 let fixedUpdateTimer = 0; //tracking time to check if fixedUpdate should happen
 let startButton;
@@ -86,7 +87,6 @@ function preload() {
 function setup() {
     createCanvas(windowWidth, windowHeight);
     bg = loadImage("assets/backpack.jpg");
-    //background(225);
     money = startingMoney;
     
     startButton = new StartButton('Generate Pet!');
@@ -186,7 +186,6 @@ function draw() {
         eatSFX.rate(music_speed);
         vetSFX.rate(music_speed);
         
-
         // animate creature and display dialouge
         creature.draw();
         creature.dialogue();
@@ -242,11 +241,12 @@ function fixedUpdate(){ // Runs every fixedUpdateFrequency seconds, use for thin
 }
 
 function randomMoneyFixedUpdate(){
+    // always get a small amount of money each fixed update
+    money += 5;
+    // chance to get extra money, decreases over time
     let rand = random(100);
-    let chance = 45;
-    let increment = random([20, 25, 30, 35, 40]);
-    if (rand < chance){
-        console.log("Have some money :) ");
+    let increment = random([10, 15, 20, 25, 30]);
+    if (rand < increaseMoneyProbability){
         money += increment;
     }
 }
@@ -292,10 +292,10 @@ function mousePressed() {
         startButtonPressed = true;
     }
     if (mouseWithinRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height) && !creature.isAlive) {
-        money = startingMoney;
-        windSFX.stop();
-        screenSFX.play();       
-        generateRandomCreature();
+        // money = startingMoney;
+        // windSFX.stop();
+        // screenSFX.play();       
+        // generateRandomCreature();
         location.reload();
     }
     // interact buttons
@@ -425,7 +425,8 @@ class Creature {
 
         this.happiness = (this.statArray[0] + this.statArray[1] + this.statArray[2]) / (this.maxStat * 3);
 
-        music_speed = map(this.happiness, 0, 1, 0.5, 1);
+        music_speed = map(this.happiness, 0, 1, 0.55, 1.05);
+        increaseMoneyProbability = map(this.happiness, 0, 1, 25, 50);
 
         this.wavinessX = (1 - this.happiness) * 15;
         this.wavinessY = (1 - this.happiness) * 15;
@@ -707,12 +708,10 @@ class StartButton {
         this.height = 40;
         this.x = (width / 2) - (this.width / 2);
         this.y = (height / 2) - (this.height / 2);
-        this.color = 200;
         this.text = text;
     }
 
     draw() {
-        //fill(this.color);
         noFill();
         stroke(0);
         strokeWeight(1.5);
@@ -739,7 +738,7 @@ class InteractButton {
         this.y = ((height / 2) - (VIEWPORTSIZE / 2)) + VIEWPORTSIZE - this.buttonHeight - offset;
         this.cost = initialCost;
         this.effect = initialEffect;
-        this.timesPressed = 0; // used to decrease the effectivness of interaction or increase the cost of interaction?
+        this.timesPressed = 0; // used to decrease the effectivness of interaction and increase the cost of interaction
         // for circle buttons
         this.cx = 0;
         this.cy = 0;
@@ -760,7 +759,6 @@ class InteractButton {
     // gets called when certain key or the mouse is pressed
     update() {
         if (money < this.cost){
-            console.log("Not Enough Money");
             noMoneySFX.play();
             return;
         }
@@ -788,7 +786,6 @@ class InteractButton {
     }
 
     draw() {
-        //fill(this.color);
         noFill();
         stroke(0);
         strokeWeight(1.5);
