@@ -578,7 +578,6 @@ class Creature {
             // this.textHeight += (int(random(this.sprite.height / 3)) * randomizer) - int(this.sprite.height / 4);
 
             //Generates text based on current overall happiness
-            this.words = random(neutralText);
             if (this.happiness < 0.33) {
                 //Makes sure it doesn't say the same phrase twice in a row
                 while (this.words == this.prevWords) {
@@ -652,45 +651,45 @@ class Creature {
         if (this.statArray[statIndex] > this.maxStat) {
             this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
         }
-        if (random(1) < .5){
+        if (random(1) < .6){
             return;
         }
         switch (statIndex){
             case 0: // HUNGER
                 if (stat > 66){
-                    this.startDialogue("Yum!", 500);
+                    this.startDialogue("Yum!", 600);
                 }
                 else if (stat > 33){
-                    this.startDialogue("I'm still hungry...", 500);
+                    this.startDialogue("I'm still hungry...", 900);
                 }
                 else {
-                    this.startDialogue("MORE!", 500);
+                    this.startDialogue("MORE!", 600);
                 }
                 break;
                 
             case 1: // FUN
                 //PLACEHOLDER
                 if (stat > 66){
-                    this.startDialogue("I'm having a blast!", 500);
+                    this.startDialogue("I'm having a blast!", 900);
                 }
                 else if (stat > 33){
-                    this.startDialogue("Can I get a new toy?", 500);
+                    this.startDialogue("Can I get a new toy?", 900);
                 }
                 else {
-                    this.startDialogue("Meh...", 500);
+                    this.startDialogue("Meh...", 600);
                 }
                 break;
 
             case 2: // HEALTH
                 //PLACEHOLDER
                 if (stat > 66){
-                    this.startDialogue("I feel real healthy now!", 500);
+                    this.startDialogue("I feel real healthy now!", 900);
                 }
                 else if (stat > 33){
-                    this.startDialogue("Thanks for the vet trip!", 500);
+                    this.startDialogue("Thanks for the vet trip!", 900);
                 }
                 else {
-                    this.startDialogue("I'm still not feeling great.", 500);
+                    this.startDialogue("I'm still not feeling great.", 900);
                 }
                 break;
             default:
