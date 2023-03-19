@@ -373,8 +373,9 @@ class Creature {
         //Dialogue Stuff
         this.dialogueTime = 2000;
         this.dialogueTimer = this.dialogueTime + 1;
+        this.normalDialogueTime = 2000;
         this.textColor = 0;
-        this.statDialogueFrequency = 18000;
+        this.statDialogueFrequency = 12000;
         this.statDiaFreqTimer = 0;
         this.words = "a";
         this.prevWords = this.words;
@@ -559,6 +560,7 @@ class Creature {
         this.showingDialogue = true;
         this.dialogueTimer = 0;
         this.words = text;
+        this.prevWords = this.words;
         this.dialogueTime = duration;
         this.textHeight = this.y;
         let randomizer = random(1) < 0.5 ? -1 : 1;
@@ -592,8 +594,7 @@ class Creature {
                     this.words = random(happyText);
                 }
             }
-            this.startDialogue(this.words, 4000);
-            this.prevWords = this.words;
+            this.startDialogue(this.words, this.normalDialogueTime);
         }
         //Increments timer for when dialogue should next be displayed
 
@@ -651,7 +652,7 @@ class Creature {
         if (this.statArray[statIndex] > this.maxStat) {
             this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
         }
-        if (random(1) < .6){
+        if (random(1) < .6 || this.showingDialogue){
             return;
         }
         switch (statIndex){
