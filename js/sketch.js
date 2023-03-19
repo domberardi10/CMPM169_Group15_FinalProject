@@ -1,6 +1,6 @@
-// sketch.js - purpose and description here
-// Author: Your Name
-// Date:
+// sketch.js - Massive code file for running the Yamabocchi.
+// Author: Dominic Berardi, Ryan Hueckel, Justin Hu, Autumn Plaxco, Elizabeth Arnold
+// Date: 3/19/2023
 
 // global variables
 let bg;
@@ -26,7 +26,8 @@ let feedButton, toyButton, vetButton;
 // assets
 let music;
 let music_speed = 1;
-let buttonSFX, screenSFX, eatSFX, toySFX, vetSFX, noMoneySFX, getMoneySFX, windSFX;
+let crowdVolume = 0;
+let buttonSFX, screenSFX, eatSFX, toySFX, vetSFX, noMoneySFX, getMoneySFX, crowdSFX;
 let titleFont;
 let wordsFont;
 // arrays of images/sprites
@@ -74,8 +75,8 @@ function preload() {
     vetSFX.setVolume(0.3);
     noMoneySFX = loadSound("assets/Not Enough Money.mp3");
     noMoneySFX.setVolume(0.3);
-    windSFX = loadSound("assets/Wind.mp3");
-    windSFX.setVolume(0.02);
+    crowdSFX = loadSound("assets/crowd-noise.mp3");
+    crowdSFX.setVolume(0);
     
     // load fonts
     titleFont = loadFont("assets/Komika_Hand.ttf");
@@ -127,13 +128,6 @@ function setup() {
             j += 1;
         }
     }
-
-    setTimeout(() => {
-        console.log(heads);
-        console.log(bodies);
-        console.log(legs);
-        //generateRandomCreature();
-    }, 100);
 
 }
 
@@ -188,7 +182,7 @@ function draw() {
         
         // animate creature and display dialouge
         creature.draw();
-        creature.dialogue();
+        creature.statDialogue();
 
         // update and display status bars
         hungerBar.update();
@@ -223,7 +217,13 @@ function draw() {
             restartButton.draw();
             // reset music
             music.stop();
-            windSFX.loop();
+            if (!crowdSFX.isPlaying()){
+                crowdSFX.loop(); 
+            }
+            if (crowdVolume < .35){
+                crowdVolume += .005;
+                crowdSFX.setVolume(crowdVolume);
+            }
             music_speed = 1;
         }
     }
@@ -292,10 +292,6 @@ function mousePressed() {
         startButtonPressed = true;
     }
     if (mouseWithinRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height) && !creature.isAlive) {
-        // money = startingMoney;
-        // windSFX.stop();
-        // screenSFX.play();       
-        // generateRandomCreature();
         location.reload();
     }
     // interact buttons
@@ -352,6 +348,7 @@ class Creature {
         this.statArray[1] = 90; //FUN
         this.statArray[2] = 90; //HEALTH
         this.highStat = 80;
+        this.showingDialogue = false;
         this.lowStat = 20;
         this.isAlive = true;
         this.happiness = (this.statArray[0] + this.statArray[1] + this.statArray[2]) / (this.maxStat * 3);
@@ -377,7 +374,7 @@ class Creature {
         this.dialogueTime = 2000;
         this.dialogueTimer = this.dialogueTime + 1;
         this.textColor = 0;
-        this.statDialogueFrequency = 5000;
+        this.statDialogueFrequency = 18000;
         this.statDiaFreqTimer = 0;
         this.words = "a";
         this.prevWords = this.words;
@@ -395,13 +392,14 @@ class Creature {
             let rand = random(100);
             if (rand < decrementStatProbability){ //CHANCE TO DECREMENT THAT STAT
                 //Decreases stats by a lot more if any stat is super low
+                let decrementMultiplier = 1;
                 if (min(this.statArray) <= 5) {
                     let decrement = int(random(15, 20));
-                    this.decreaseStat(i, decrement);
+                    this.decreaseStat(i, decrement * decrementMultiplier);
                 }
                 else {
                     let decrement = int(random(5, 10));
-                    this.decreaseStat(i, decrement);
+                    this.decreaseStat(i, decrement * decrementMultiplier);
                 }              
             }
 
@@ -438,7 +436,7 @@ class Creature {
         push();
         if (this.facingRight) {
             scale(-1, 1);
-            image(this.sprite, -int((this.x - this.sprite.width / 2) + (this.sprite.width / 1.75)), int(this.y - this.sprite.height / 2));
+            image(this.sprite, -int((this.x - this.sprite.width / 2) + (this.sprite.width)), int(this.y - this.sprite.height / 2));
         }
         else {
             image(this.sprite, int(this.x - this.sprite.width / 2), int(this.y - this.sprite.height / 2));
@@ -530,9 +528,6 @@ class Creature {
         
     }
 
-    statDialogue(){
-
-    }
 
     distort(input, wavinessX, wavinessY, periodX, periodY) {
         let output = createImage(input.width, input.height);
@@ -557,63 +552,74 @@ class Creature {
         return output;
     }
 
-    dialogue() {
-        if(!this.isAlive) {
+    startDialogue(text, duration){
+        if(!this.isAlive || this.showingDialogue) {
             return;
         }
-        //Checks if dialogue isn't currently being displayed
-        if (this.dialogueTimer > this.dialogueTime) {
-            //Checks if dialogue should now be display
-            if (this.statDiaFreqTimer > this.statDialogueFrequency) {
-                //Reset timers
-                this.statDiaFreqTimer = random(this.statDialogueFrequency / 3);
-                this.dialogueTimer = 0;
-
-                //Generate random height for the text to be displayed at
-                this.textHeight = this.y;
-                let randomizer = random(1) < 0.5 ? -1 : 1;
-                this.textHeight += int(random(this.sprite.height / 4)) * randomizer;
-
-                //Generates text based on current overall happiness
-                if (this.happiness < 0.33) {
-                    //Makes sure it doesn't say the same phrase twice in a row
-                    while (this.words == this.prevWords) {
-                        this.words = random(angryText);
-                    }                  
-                } else if (this.happiness < 0.66) {
-                    while (this.words == this.prevWords) {
-                        this.words = random(neutralText);
-                    }
-                } else {
-                    while (this.words == this.prevWords) {
-                        this.words = random(happyText);
-                    }
-                }
-                this.prevWords = this.words;
-            }
-            //Increments timer for when dialogue should next be displayed
-            else {
-                this.statDiaFreqTimer += deltaTime;
-            }
-        }
-        //Displays Text
-        else {     
-            this.showDialogue(this.words);
-        }      
+        this.showingDialogue = true;
+        this.dialogueTimer = 0;
+        this.words = text;
+        this.dialogueTime = duration;
+        this.textHeight = this.y;
+        let randomizer = random(1) < 0.5 ? -1 : 1;
+        this.textHeight += (int(random(this.sprite.height / 3)) * randomizer) - int(this.sprite.height / 4);
     }
 
-    showDialogue(textToShow){           
-        //Checks whether the dialogue should be on the left or right of the creature
-        if (this.x > width / 2) { //Show on left
+    statDialogue() {
+        //Checks if dialogue should now be display
+        if (this.statDiaFreqTimer > this.statDialogueFrequency) {
+            //Reset timers
+            this.statDiaFreqTimer = random(this.statDialogueFrequency / 3);
+            // this.dialogueTimer = 0;
+
+            //Generate random height for the text to be displayed at
+            // this.textHeight = this.y;
+            // let randomizer = random(1) < 0.5 ? -1 : 1;
+            // this.textHeight += (int(random(this.sprite.height / 3)) * randomizer) - int(this.sprite.height / 4);
+
+            //Generates text based on current overall happiness
+            this.words = random(neutralText);
+            if (this.happiness < 0.33) {
+                //Makes sure it doesn't say the same phrase twice in a row
+                while (this.words == this.prevWords) {
+                    this.words = random(angryText);
+                }                  
+            } else if (this.happiness < 0.66) {
+                while (this.words == this.prevWords) {
+                    this.words = random(neutralText);
+                }
+            } else {
+                while (this.words == this.prevWords) {
+                    this.words = random(happyText);
+                }
+            }
+            this.startDialogue(this.words, 4000);
+            this.prevWords = this.words;
+        }
+        //Increments timer for when dialogue should next be displayed
+
+        this.statDiaFreqTimer += deltaTime;
+        this.showDialogue(this.words); 
+    }
+  
+    
+
+    showDialogue(textToShow){     
+        if(!this.isAlive || !this.showingDialogue) {
+            return;
+        }      
+        // Checks whether the dialogue should be on the left or right of the creature
+        let offset = this.x;        
+        if (offset > width / 2) { //Show on left
             textAlign(RIGHT, TOP);
             fill(this.textColor);
             noStroke();
             textSize(15);
             if (this.facingRight) {
-                text(textToShow, this.x - int((this.sprite.width / 2) - (VIEWPORTSIZE - this.sprite.width) / 3.75), this.textHeight, (VIEWPORTSIZE - this.sprite.width) / 2); 
+                text(textToShow, int(this.x - (this.sprite.width / 2) - ((VIEWPORTSIZE - this.sprite.width) / 2)), this.textHeight, int((VIEWPORTSIZE - this.sprite.width) / 2)); 
             }
             else {
-                text(textToShow, this.x - int((this.sprite.width / 2) - (VIEWPORTSIZE - this.sprite.width) / 2), this.textHeight, (VIEWPORTSIZE - this.sprite.width) / 2); 
+                text(textToShow, int(this.x - (this.sprite.width / 2) - ((VIEWPORTSIZE - this.sprite.width) / 2)), this.textHeight, int((VIEWPORTSIZE - this.sprite.width) / 2)); 
             }
             
         }
@@ -623,20 +629,73 @@ class Creature {
             noStroke();
             textSize(15);
             if (this.facingRight) {
-                text(textToShow, this.x + int(this.sprite.width / 2) - this.sprite.width / 2, this.textHeight, (VIEWPORTSIZE - this.sprite.width) / 2);      
+                text(textToShow, this.x + int(this.sprite.width / 2), this.textHeight, int((VIEWPORTSIZE - this.sprite.width) / 2));      
             }
             else {
-                text(textToShow, this.x + int(this.sprite.width / 2), this.textHeight, (VIEWPORTSIZE - this.sprite.width) / 2);      
+                text(textToShow, this.x + int(this.sprite.width / 2), this.textHeight, int((VIEWPORTSIZE - this.sprite.width) / 2));      
             }             
         }
-        this.dialogueTimer += deltaTime;
+        if (this.showingDialogue){
+            this.dialogueTimer += deltaTime;
+        }
+        
+        if (this.dialogueTimer > this.dialogueTime){
+            this.showingDialogue = false;
+            this.dialogueTimer = 0;
+        }
     }
     
     increaseStat(statIndex, increment, cost) {
         money -= cost;
+        let stat = this.statArray[statIndex];
         this.statArray[statIndex] += increment;
         if (this.statArray[statIndex] > this.maxStat) {
             this.statArray[statIndex] = this.maxStat; // ensure it doesnt go over max stat
+        }
+        if (random(1) < .5){
+            return;
+        }
+        switch (statIndex){
+            case 0: // HUNGER
+                if (stat > 66){
+                    this.startDialogue("Yum!", 500);
+                }
+                else if (stat > 33){
+                    this.startDialogue("I'm still hungry...", 500);
+                }
+                else {
+                    this.startDialogue("MORE!", 500);
+                }
+                break;
+                
+            case 1: // FUN
+                //PLACEHOLDER
+                if (stat > 66){
+                    this.startDialogue("I'm having a blast!", 500);
+                }
+                else if (stat > 33){
+                    this.startDialogue("Can I get a new toy?", 500);
+                }
+                else {
+                    this.startDialogue("Meh...", 500);
+                }
+                break;
+
+            case 2: // HEALTH
+                //PLACEHOLDER
+                if (stat > 66){
+                    this.startDialogue("I feel real healthy now!", 500);
+                }
+                else if (stat > 33){
+                    this.startDialogue("Thanks for the vet trip!", 500);
+                }
+                else {
+                    this.startDialogue("I'm still not feeling great.", 500);
+                }
+                break;
+            default:
+                print("statEvent(): INVALID STAT INDEX");
+                break;
         }
     }
 
@@ -712,7 +771,8 @@ class StartButton {
     }
 
     draw() {
-        noFill();
+        //noFill();
+        fill(100, 100, 100, 80);
         stroke(0);
         strokeWeight(1.5);
         rect(this.x, this.y, this.width, this.height);
